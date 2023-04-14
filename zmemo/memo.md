@@ -491,3 +491,192 @@ int main() {
 }
 // numbers[5] 를 출력하면 전혀 다른 값이 나옴
 ```
+
+- 배열 길이를 바꾸고 싶다면 동적 메모리 할당을 이용해 배열을 생성한다.
+new 연산자를 이용해 heap 메모리를 할당하도록 해서 배열을 생성할 수 있고,
+
+더 필요 없어지면 delete 연산자를 이용해 메모리 사용을 종료하면 된다.
+
+``` cpp
+    int arraySize = 5;
+    int* numbers = new int[arraySize];
+    
+    int newSize = 10;
+    int* newNumbers = new int[newSize]
+    
+
+    for (int i = 0; i < arraySize; ++i) {
+        newNumbers[i] = numbers[i]
+    }
+    
+    delete[] numbers;
+    
+    numbers = newNumbers;
+    arraySize = newSize;
+    
+    // ... 할거 하고
+    
+    // 메모리를 돌려줌
+    delete[] numbers;
+```
+
+다만 이런 raw pointer와 동적 메모리 할당은 에러가 터질 여지가 많아
+
+요즘엔 그닥 추천되지 않고, 대신 표준 라이브러리 std::vector를 사용해
+
+자동으로 동적 메모리 할당과 resize를 진행한다.
+
+``` cpp
+    #include <vector>
+    #include <iostream>
+    
+    int main() {
+        // 5개 요소를 가진 벡터 생성
+        std::vector<int> numbers = {1, 2, 3, 4, 5}
+        // use the vector as needed..
+        
+        // resize vector
+        // 자동으로 resize하고 새 요소를 초기화
+        numbers.resize=(10)
+        
+        // 이렇게쓰면 컴파일 에러남. 벡터는 이 함수가 받는 타입이 아니므로..
+        // std::cout << numbers << std::endl;
+        
+        for (int number : numbers) {
+            std::cout << number << " ";   
+        }
+        std:;cout << ste::endl;
+    }
+```
+
+### pointers
+다른 변수의 메모리 주소를 저장하는 변수이다. 이를 이용해 메모리를 직접 조작해
+
+더 효율적이고 유연한 코드를 작성할 수도 있다.
+
+1. declare, initialize pointer
+포인터응 선언하려면 포인터가 가리키는 변수의 타입과 *을 이용한다.
+int를 가리키는 포인터를 선언하려면 int* 처럼 해주면 된다.
+
+& 연산자를 이용해 포인터가 가리킬 변수를 지정할 수 있다.
+
+``` cpp
+    int* intPtr;
+    
+    int myVar = 42;
+    int* intPtr2 = &myVar;
+```
+
+2. dereferencing pointer
+메모리 주소에 저장된 값에 접근하기 위해 dereference 연산자 *을 사용한다.
+
+``` cpp
+    int myVar = 42;
+    int* intPtr = &myVar;
+    
+    int value = *intPtr;
+    
+```
+
+3. pointer를 이용해 값 변경
+``` cpp
+    int myVar = 42;
+    int* intPtr = &myVar;
+    
+    *intPtr = 24;
+    
+    //
+    
+    int myArray[3] = {10, 20, 30}
+    int* intPtr = myArray;
+    
+    intPtr++;
+```
+
+전술했듯이 요즘에는 vector를 사용하는 것이 더 안전하다.
+
+
+### pointer & array
+포인터로 배열을 찍으면 그 배열의 1st 요소를 가리킴.
+
++ 배열은 연속적으로 메모리를 차지하므로 주소도 연속적이고,
+
+> 포인터 값에 1만 더하면 다음 요소를 가리키게 된다.
+
+``` cpp
+    int myArray[5] = {1, 2, 3, 4, 5}
+    int *ptr = myArray;
+    
+    std::cout <<< "1st : " << *ptr << std::endl;
+    std::cout <<< "2nd : " << *(ptr+1) << std::endl;
+    std::cout <<< "3rd : " << *(ptr+2) << std::endl;
+    
+    *(ptr+1) = 42;
+    
+    std::cout << myArray[1] << std::endl; // 42
+    return 0;
+```
+
+### std :: 
+std는 cpp 표준 lib의 namespace다. namespace는 연관된 함수, 클래스, 식별자등을 묶어
+
+코드 내에서 충돌이 발생하는 것을 막기 위한 방법이다. 
+
+iostream은 cpp 표준 라이브러리의 하나로, input, ouput 관련 작업을 담당한다.
+
+cout, endl 같은것 이외에도 std:: 에 속한 요소들은 많다.
+
+std::vector 같은 데이터 구조체도 있고,
+
+std::sort 같은 알고리즘 관련 메서드도 있고,
+
+반복을 위한 std::iterator, std::reverse_iterator 등등
+
+굉장히 많은데, std:: 네임 스페이스는 이런 수많은 요소들을 다른 라이브러리 (제3자발)의
+
+동일한 요소들과 충돌이 나지 않게 해준다.
+
+#### Eigen
+
+하나의 예로 eigen 라이브러리가 있는데, 한 번 써보고 싶다.
+
+이건 npm 같은것도 없나? 직접 홈페이지 들어가서 인스톨을 하라네..
+
+일단 패스
+
+
+
+## 3.8 Pointer-to-Pointer and Multi-dimensional Arrays
+
+cpp 에서는 포인터를 가리키는 포인터 "pointer to pointer"를 사용할 수 있다.
+
+다중 배열이나 동적 데이터 구조를 다룰 때 유용할 수 있다.
+
+### pointer-to-pointer
+
+이는 별 2개를 써서 선언한다. (**)
+
+``` cpp
+    int **ptr_to_ptr;
+    
+    int rows = 3;
+    int cols = 4;
+    
+    // allocate memory for the pointer
+    int **matrix = new int*[rows];
+    
+    // allocate memory for actual data
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[cols]   
+    }
+    
+    // 이러면 matrix는 동적 할당된 2차 배열로 row, col을 가짐.
+    
+    int matrix[3][4] = 42;
+```
+
+* new는 힙 메모리를 새로운 객체나 배열에 할당하기 위해 사용된다.
+
+## 3.9 dynamic memory allocation
+동적 메모리 할당은 런타임에서 메모리르 할당, 취소하는 프로세스를 의미한다.
+

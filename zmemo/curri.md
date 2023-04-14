@@ -1,27 +1,52 @@
-1. Introduction to C++
-
+# 1. Introduction to C++
 - Overview of C++ and its history
 - Setting up a development environment
 - Basic structure of a C++ program
 - Compiling and running a C++ program
 - Basics of C++ Syntax
 
-2. Variables and data types
+# 2. Variables and data types
 - Constants and enumerations
 - Basic input/output (cin, cout)
 - Arithmetic, relational, and logical operators
 - Control structures (if, else, switch, for, while, do-while)
 - Functions
 
-3. Defining and calling functions
+# 3. Defining and calling functions
 - Function prototypes and declarations
 - Pass-by-value vs. pass-by-reference
 - Function overloading
 - Inline functions
 - Recursion
-- Arrays and Pointers
 
-4. Arrays and array notation
+### 3.6 arrays & pointers
+#### 3-6-1: Arrays
+- Introduction to arrays in C++
+- Declaring and initializing arrays
+- Accessing array elements
+- Array bounds checking
+
+#### 3-6-2: Pointers
+- Introduction to pointers in C++
+- Declaring and initializing pointers
+- Pointer arithmetic
+- Pointers and arrays
+
+#### 3-6-3: Pointer-to-Pointer and Multi-dimensional Arrays
+- Working with pointer-to-pointer variables
+- Declaring and initializing multi-dimensional arrays
+- Accessing multi-dimensional array elements
+
+#### 3-6-4: Dynamic Memory Allocation
+- The need for dynamic memory allocation
+- Using new and delete operators
+- Allocating arrays dynamically
+
+#### 3-6-5: Common pitfalls and best practices
+- Common mistakes when working with arrays and pointers
+- Best practices for using arrays and pointers in C++
+
+# 4. Arrays and array notation
 Pointers and pointer arithmetic
 Dynamic memory allocation (new, delete)
 Functions with array and pointer arguments
