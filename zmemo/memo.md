@@ -678,5 +678,228 @@ cpp 에서는 포인터를 가리키는 포인터 "pointer to pointer"를 사용
 * new는 힙 메모리를 새로운 객체나 배열에 할당하기 위해 사용된다.
 
 ## 3.9 dynamic memory allocation
-동적 메모리 할당은 런타임에서 메모리르 할당, 취소하는 프로세스를 의미한다.
 
+동적 메모리 할당은 런타임에서 메모리를 할당, 취소하는 프로세스를 의미한다.
+
+전에 본 것처럼 new와 delete 키워드가 각각을 담당함.
+
+### 동적 메모리 할당
+
+하나의 객체에 동적으로 메모리를 할당하려면 new 키워드를 사용한다.
+
+``` cpp
+    // int에 대한 메모리를 heap에 할당하고, 포인터를 리턴한다.
+    int *ptr = new int;
+    
+    int *array = new int[10]
+```
+
+### 동적 메모리 deallocating 
+delete 키워드를 사용한다.
+
+``` cpp
+    delete ptr;
+    
+    delete[] array;
+```
+
+### 메모리 할당 실패 handling
+메모리 부족 등의 이유로 new를 이용한 메모리 할당이 실패할 경우,
+
+std::bad_alloc 타입의 예외가 반환된다.
+
+이는 try-catch block을 이용해 처리할 수 있다.
+
+``` cpp
+    int *ptr;
+    try {
+        ptr= new int[10000000000];
+    } catch(const std::bad_alloc &e) {
+        // e는 예외 object에 대한 reference
+        // exception 객체의 함수 what()을 사용해 error 설명을 확인 가능
+        // 단, 이 exception은 성능적으로 비싸다. 말그대로 예외적인게 아니면 사용하지 않는게 좋다.
+        std:cerr << "memory alloc failed : " << e.what() << std::endl;
+    }
+```
+
+### 자동 메모리 관리를 위한 스마트 포인터 사용
+C++ 11은 알아서 메모리를 관리해주는 스마트 포인터를 도입헀다.
+
+가장 많이 사용되는 스마트 포인터는 `std::unique_ptr`, `std::shared_ptr` 로
+
+스코프를 벗어나거나 더 이상 대상에 대한 참조가 없는 경우 자동으로 메모리를 deallocate한다.
+
+``` cpp
+    #include <memory>
+    
+    std::unique_ptr<int> ptr(new int(42));
+    
+    // ptr로 뭔가 막 하고, scope에서 벗어나면 자동으로 deallocate됨
+```
+
+이 동적 메모리 할당은 cpp의 
+
+특히 lifetime이나 size가 변화하는 데이터 구조를 사용할 때 중요한 부분이다.
+
+메모리 관리르 잘 해야 메모리 누수나 다른 이슈들을 방지할 수 있다.
+
+
+## 3.10 Common pitfalls and best practices
+포인터, 배열, 동적 메모리 할당에서 주의할 점에 대해 알아보자.
+
+### memory leaks
+할당만 되고 프로그램이 종료될 때까지 deallocate가 되지 않을 때 발생한다.
+
+이렇게 되면 사용되지 않는 메모리가 누적되고, 필요 이상의 메모리를 소모하게 된다. 
+
+항상 delete, delete[] 명령어를 사용해 사용하지 않는 메모리를 deallocate해야한다.
+
+``` cpp
+    int *array = new int[10];
+    // do sth..
+    
+    delete[] array;
+```
+
+### dangling pointers
+
+dangling pointer는 deallocate 되었거나 더 이상 valid하지 않는 메모리를 가리키는 포인터이다.
+
+이를 이용해 메모리에 접근하면 undefined behavior를 마주할 수 있다.
+
+이를 방지하려면 포인터가 가리키는 메모리를 deallocate한 후, 포인터를 nullpte로 설정할 것.
+
+``` cpp
+    int *ptr = new int;
+    
+    // do sth..
+    
+    delete ptr;
+    ptr = nullptr;
+    
+```
+
+### double deletion
+
+동일한 메모리를 두 번 이상 지우려고 할 때 나타난다. 마찬가지로 undefined behavior가 나타남.
+
+이 또한 마찬가지로 방지하려면 nullptr로 잘 설정해줘야 한다.
+
+``` cpp
+    int *ptr = new int;
+    delete ptr;
+    ptr = nullptr;
+```
+
+### using uninitialized pointers
+초기화하지 않은 호인터는 어딜 보고 있을지 모름. 사용전에 초기화 꼭 해라.
+
+특정 valid addr로 지정하던가, nullptr로 설정하던가
+
+### prefer smart pointer
+자동으로 가리키는 대상의 메모리를 관리하는 스마트 포인터가 cpp 11부터 도입되었다.
+
+raw pointer보다 이걸 쓰는걸 언제든 가능할 때는 고려해볼 것.
+
+``` cpp
+    #include <memory>
+    
+    std::unique_ptr<int[]> array(new int[10]);
+```
+
+- unique_ptr
+    대상에 대한 exclusive ownership을 가짐. 어떤 시점에서든 하나의 unique_ptr 인스턴스가 대상을 소유한다.
+    스코프에서 벗어나거나 명시적으로 리셋되면 가리키던 대상은 자동으로 삭제된다.
+    
+    공유되선 안되거나 엄격한 소유권을 주고싶을때 사용한다.
+    
+    복사될 수 없으므로 소유권을 한 인스턴스에서 다른 인스턴스로 이동시키는 것만 가능하다.
+    
+- std::shared_ptr
+    대상에 대한 공유된 소유권을 의미. 여러 개의 shared_ptr 인스턴스가 동일 대상을 소유할 수 있고,
+    
+    모든 shared_ptr이 제거되면 대상도 삭제된다.
+    
+    shared_ptr은 대상을 쇼유하는 인스턴스가 몇 개인지를 추적한다. 0이 되면 대상은 삭제된다.
+    
+
+## 3.11 Best practices for using arrays and pointers in C++
+
+cpp에서 array, pointer를 잘 사용하기 위한 몇 가지 팁
+
+1. standard containers 사용 : 
+raw array나 포인터를 사용하기보다, std::vector, std::array, and std::list 같은 standard containers를 사용한다. 사용도 쉽게, 추가적인 기능도 있고. 메모리 관리도 용이하다.
+
+2. smart pointers 사용:
+raw pointer보다는 std::unique_ptr, std::shared_ptr, and std::weak_ptr 등의 스마트 포인터를 사용해 동적 메모리 할당을 진행한다.
+더 이상 사용되지 않는 메모리를 자동으로 풀어주고, 소유권 semantic을 시행한다.
+
+
+3. pointer arithmetic 사용하지 않기:
+Pointer arithmetic은 가독성도 별로고 에러가 터질 가능성이 높다.
+포인터 산술계산 대신, 컨테이너 내의 요소에 접근하기 위해 반복문을 사용한다.
+
+4. 포인터 초기화
+항상 포인터를 초기화해준다. 아직 대상이 없다면 nullptr로 초기화하는 것이 좋다.
+
+5. Check for null pointers:
+포인터를 dereference 하기 전에 항상 null ptr인지를 확인한다. 
+
+6. pointer-to-pointer, 다중 배열 사용시에는 주의:
+고차 데이터를 사용시 ptr_to_ptr이나 다중 배열은 에러가 터지기 쉽고, 헷갈린다. 대신 std:vector 같은 표준적인 컨테이너를 사용한다.
+e.g. std::vector<std:vector<int>>
+
+7. array decay에 주의:
+배열을 함수에 전달할 때 배열은 포인터로 분해된다. 배열에 있는 정보를 잃을 수도 있으므로 주의해야 한다.
+표준 컨테이너를 사용하거나, 고정된 크기 배열을 함수에 전달시 std::array를 사용한다.
+
+8. 메모리 할당 실패를 잘 처리할 것:
+동적 메모리 할당을 위해 new나 malloc을 사용 시, 항상 반환된 포인터가 valid 한지 확인한다. nullptr이라면 적절한 예외 처리를 거칠 것.
+
+# 4. Arrays and array notation
+## 4.1 Pointers and pointer arithmetic (review)
+### 4.1.1 Pointer basics
+
+포인터 선언은 다음과 같이 *을 이용한다.
+
+```
+    int* my_ptr
+```
+
+### 4.1.2 Pointer arithmetic
+산술 계산이 포인터에 왜 필요하냐? 포인터가 가리키는 값을 바꿔줄 수 있음.
+배열이랑 잘 조합되서 사용한다.
+
+``` cpp
+    int my_array[5] = {1, 2, 3, 4, 5};
+    
+    // 포인터로 배열을 지정하면 배열의 첫번쨰 요소를 자동으로 가리킴
+    int* my_ptr = my_array; 
+    
+    // 그 포인터의 다음 주소는 두 번째 요소를 가리키게 됨
+    int second_element = *(my_pointer + 1)
+    
+```
+
+### 4.1.3 Relationship between pointers and arrays
+함수에서 배열은 포인터로 분해되므로, 포인터 산술계산과 응용하면
+배열 순회를 포인터로 할 수 있음.
+
+``` cpp
+    void print_array(int* arr , int size) {
+        for( int i = 0; i < size; ++i) {
+            std::cout << arr[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+    
+    int main() {
+        // my_array는 array의 1st 요소를 가리키는 포인터로 decay되어 함수로 전달됨
+        int my_array[5] = {1, 2, 3, 4, 5};
+        print_array(my_array, 5);
+        return 0;
+    }
+```
+
+## 4.2 Dynamic memory allocation (new, delete)
+### 4.2.1 
