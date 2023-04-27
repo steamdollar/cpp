@@ -417,26 +417,1086 @@ c-style string을 std::string constructor로 넘겨주거나 바로 assign해주
 
 
 # 6. Classes and objects
-Constructors and destructors
-Access specifiers (public, private, protected)
-Class methods and properties
-Inheritance and polymorphism
-Operator overloading
-Friend functions and classes
-File Input/Output
+## 6.1 Constructors and destructors
+
+### 6.1.1 role of constructors
+- 생성자는 class의 object가 생성될때 자동으로 실행되는 class의 함수이다.
+
+- obj의 attribute를 초기화하고 resource를 allocate하는데 사용된다.
+
+- 생성자 함수 이름은 class 이름과 동일하고, 리턴 타입은 없다.
+
+### 6.1.2 default constructors
+- class에 대해 생성자함수를 정의하지 않는다면 컴파일러가 자동으로
+디폴트 생성자를 제공해 객체를 디폴트 값으로 설정한다.
+
+- 생성자를 파라미터와 함께 정의하면 컴파일러가 디폴트 생성자를 생성하지 않는다. 이 경우, 변수를 주지않고 객체를 생성하려면 명시적으로 생성자함수를 줘야 함.
+
+### 6.1.3 parameterized constructor
+- 객체의 attribute를 특정 값으로 초기화하고 위해 파라미터와 함께 생성자를 정의할 수 있다.
+
+### 6.1.4 constructor of overloading
+- 함수 overload와 비슷하게, 다른 파라미터들을 가진 여러 개의 생성자를 하나의 class에서 정의할 수 있다. 객체 생성시 적절한 생성자가 호출된다. 
+
+### 6.1.5 copy constructor
+- copy constructor는 생성자의 한 타입으로, 존재하는 obj의 값을 이용해 새 obj를 초기화한다.
+
+- 컴파일러가 제공하는 디폴트 copy constructor는 obj의 sttribute를 얕은 복사한다.
+
+- 깊은 복사가 필요하다면 직접 copy constructor를 만들어야 한다.
+
+### 6.1.6 role of destructor
+- 객체가 범위를 벗어나거나 명시적으로 삭제될때 자동 실행되는 특수한 member function이다.
+
+- 리소스를 release하고, cleanup task를 실행한다.
+
+- destrucotr의 이름은 class명과 동일하지만 ~가 prefix로 붙고 리턴 타입, 파라미터는 없다.
+
+``` cpp
+    class exClass {
+        public:
+        // 생성자
+            exclass() {
+                std::cout << "Constructor called" << std::endl;
+            }
+            
+            ~exClass() {
+                std::cout << "Destrucotr called" << std::endl;
+            }
+                
+    }
+    
+    int main() {
+        // 생성자 함수가 자동으로 호출
+        exClass obj;
+        
+        // obj가 범위 밖으로 나가면 destructor가 자동으로 호출됨
+        return 0;
+    }
+```
+
+## 6.2 Access specifiers (public, private, protected)
+access speicfier는 class memeber의 접근성과 가시성을 결정한다.
+
+- public : class에 접근할 수 있는 프로그램의 어떤 부분에서도 접근 가능하다.
+= class 안팎 모두에서 접근이 가능하다.
+
+- private : class 자체에서만 접근이 가능하다. 상속받은 class나 class 밖에서는 접근할 수 없다.
+
+- protected : class와 derived class에서 접근이 가능하지만 class 밖에서는 접근이 불가능하다. 
+
+``` cpp
+    class ExClass {
+        public : 
+        int publicVar;
+        void publicFunc(){}
+        
+        private:
+        int privateVar;
+        void privateFunc(){}
+        
+        protected:
+        int protectedVar;
+        void protectedFunc(){}   
+    }
+```
+
+class의 memeber에 어떤 속성을 줄것인지를 결정할 때는 
+
+"principle of least privilege" 를 따르는 것이 좋다.
+
+: 목적을 당성하기 위해 필수적인 최소한의 접근성을 준다.
+
+memeber의 접근성에 대해 명시적으로 지정해주지 않으면 디폴트 값으로 정해지는데,
+
+struct는 public, class는 private.
+
+
+## 6.3 Class methods and properties
+- methods (member fucntions)
+1. class 선언 시점에 내부에서 정의하거나, :: 연산자를 이용해 class 밖에서 만든다.
+
+2. method는 자신이 속한 obj의 속성에 접근해 이를 수정할 수 있다.
+
+3. public, private, protected로 지정해 접근성을 조정할 수 있다.
+
+4. const로 선언하면 method가 obj의 state를 바꾸지 못한다.
+
+- properties (member var)
+1. class의 obj에 데이터를 저장한다.
+
+2. public/protected/private 설정 가능
+
+3. static으로 선언될 수 있다. 이 경우, class의 모든 obj에 공유되며, 모든 obj에서 값이 같다.
+
+4. static하지 않다면 디폴트 값을 가질 수 있다.
+
+``` cpp
+    class Circle {
+        private :
+            double radius
+            
+        public :
+            Circle(double r) {
+                radius : r;   
+            }
+            
+            // const이므로 obj에 뭔가 변화를 주지는 못함
+            double getRadius() const {
+                return radius;   
+            }
+            
+            void setRadius(double r) {
+                radius : r;   
+            }
+            
+            double area() const {
+             return 3.141519 * radius * radius;
+    }
+```
+
+
+## 6.4 Inheritance and polymorphism
+
+- inheritance
+inheritance(상속)은 존재하는 class에서 property와 method를 상속받은
+
+새로운 class를 생성해 코드에 재사용성과 조직화를 돕는다.
+
+cpp에서 상속은 `:${access_specifier}`, base class 이름을 사용해 일어난다.
+
+``` cpp
+class Animal {
+    public : 
+        void speak() {
+            std::cout << "the animal makes sound" << std::endl;
+        }
+}
+
+// Animal class를 상속 받음 
+class Dog : public Animal {
+    public:
+    // speak method를 상속받지만 override함.
+        void speak() {
+            std::cout << "the dog barks" << std::endl;
+        }
+}
+```
+
+- polymorphism
+polymorphism은 base class reference를 통해 class obj를 유도할 수 있게 해
+
+저 유연하고 일반화된 코드를 짤 수 있게 해준다.
+
+cpp 에서 이를 활용하려면 base class로의 포인터나 참조를 사용해야 하고, base class의 method를 virtual로 선언해야 한다.
+
+virtual method는 유도된 class에 의해 override되고, 런타임에서 객체의 실제 타입에 기반해 호출된다.
+
+``` cpp
+    class Animal {
+        public :
+        // speak method를 virtual로 선언하면
+        // Dog class가 speak()를 override할 수 있음
+        virtual void speak() {
+            std::cout << "the animal makes a sound" << std::endl;
+        }
+        
+        virtual ~Animal() {
+            std::coust << "Animal destructor called" << std::endl;   
+        }
+    }
+    
+    class Dog : public Animal {
+        public :
+        void speak() override {
+            std::cout << "the dog barks" << std::endl;   
+        }
+        
+        ~Dog() {
+            std::cout << "Dog destructor called" << std::endl;
+        }
+    }
+    
+    int main() {
+        // Animal pointer가 Dog obj를 가리킨다.
+        Animal* animalPtr = new Dog();
+        
+        // Dog's의 speak method 호출
+        animalPtr->speak();
+        
+        // arrow로 해도 되고, 이렇게 점찍어도 됨
+        animalPtr.speak()
+        
+        // destructor 호출
+        delete animalPtr;
+        return 0;
+    }
+    
+```
+
+## 6.5 Operator overloading
+
+operator overload는 built-in 연산자를 커스텀 class에서 재정의한다.
+
+``` cpp
+    #include <iostream>
+    
+    class Complex {
+        public:
+        Complex(double real, double imaginary) : real_(real), imaginary_(imaginary) {}
+        
+        // overloading + operator
+        Complex operator+(const Complex& other) const {
+            return Complex(real_ + other.real_, imaginary_ + other.imaginary_);
+        }  
+        
+        
+        void print() const {
+            std::cout << real_ << " + " << imaginary_ << "i" << std::endl;   
+        }
+        
+        private:
+        double real_;
+        double imaginary_;
+    }
+    
+    int main() {
+        Complex a(3,2);
+        Complex b(1,7);
+        
+        Complex result = a + b;
+        result.print();
+        
+        return 0;
+    }
+```
+
+## 6.6 Friend functions and classes
+
+cpp에서 가끔은 함수가 class가 다른 class의 private or protected member에
+
+접근해야 할 때가 있는데, 그 때 friend function or friend class를 사용한다.
+
+- Friend functions
+: class의 private, protected member에 접근 할 수 있는 함수를 말한다.
+
+``` cpp
+        class Circle {
+        public :
+            // 생성자함수 - class와 이름이 같음
+            Circle(double radius) : radius_(radius) {}
+            
+            // declare friend function
+            friend double calculate_area(const Circle& circle);
+        
+        private:
+            double radius_;
+        }    
+        
+        // define friend function - 이 함수는 private 속성인 radius에 접근 가능
+        double calculate_area(const Circle& circle) {
+            return 3.1415 * circle.radius_ * circle.radius_;   
+        }   
+        
+        int main() {
+            Circle c(5);
+            double area = calculate_area(c);
+            std::cout << "Area : " << area << std::endl;
+            
+            return 0;   
+        }
+    
+```
+
+- friend class
+
+다른 class의 protected, private 속성에 접근 가능ㅎ다ㅏ.
+
+``` cpp
+    class Rectangle {
+    public:
+        Rectangle(double width, double height): width_(width), height_(height) {}
+    
+    private:
+        double width_;
+        double height_;
+        
+        friend class RectangleInfo;   
+    }
+    
+    class RectangleInfo {
+        public:
+        static double calculate_area(const Rectangle& rectangle){
+            return rectangle.width_ * rectangle.height_;   
+        }
+    }
+    
+    int main() {
+        Rectangle r(4,6);
+        
+        // RectangleInfo의 해당 함수는 r에 접근 가능
+        double area = RectangleInfo::calculate_area(r);
+        std::cout << "Area: " << area << std::endl;
+        
+        return 0;   
+    }
+    
+```
+
+## 6.7 File Input/Output
+파일에서 데이터를 읽거나 파일에 데이터를 쓰는데 사용된다.
+
+표준 라이브러리를 사용할 수 있다.
+
+1. ifstream (input file stream) : Used for reading data from files
+2. ofstream (output file stream) : used for writing data to files
+
+``` cpp
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    
+    int main() {
+        
+        // writing to file
+        std::ofstream outFile("example.txt")
+        if(!outFile) {
+            std::cerr << "failed to open file to writing" << std::endl;
+            return 1;
+        }
+        
+        outFile << "hello file" << std::endl;
+        oufFile.close();
+        
+        // reading from a file
+        std::ifstream inFile("example.txt");
+        in(!inFile) {
+            std::cerr << "failed to open the file for reading" << std::endl;
+            return 1;
+        }
+        
+        std::string line;
+        while (std::getline(inFile, line)) {
+            std::cout << line << std::endl;   
+        }
+        inFile.close();
+        
+        return 0;
+    }
+```
+
 
 # 7. File streams (ifstream, ofstream, fstream)
-Opening and closing files
-Reading and writing to files
-File modes and error handling
-Standard Template Library (STL)
+## 7.1 Opening and closing files
+
+### 7.1.1 ifstream, ofstream and fstream classes
+파일을 조작하는건 <fstream> header의 3개 class를 사용할 수 있다.
+
+1. ifstream : input file stream used for reading data from file
+2. ofstream : output file stream used for writing data to files
+3. fstream : File stream that can be used for both r, w
+
+### 7.1.2 opening files using constructors
+대응하는 file stream class 객체를 생성해 파일을 열고, 파일 경로/이음을 준다.
+
+``` cpp
+    #include <iostream>
+    #include <fstream>
+    
+    int main() {
+        // file을 연다.
+        std::ifstream inputFile("input.txt");
+        std::ofstream outputFile("output.txt");
+           
+        // task를 진행
+           
+        // 작업 후 파일을 닫는다.
+        inputFile.close();
+        outputFile.close();
+        
+        return 0;
+    }
+```
+
+### 7.1.3 Closing files using the close() member function
+close() method를 이용해 파일을 닫을 수 있다. go와는 다르게 이건 굳이 안써줘도 
+file stream이 범위에서 벗어나거나 하면 자동으로 파일이 닫힌다.
+
+## 7.2 Reading and writing to files
+### 7.2.1 Reading data from files using getline(), get(), and >>
+
+ifstream 객체의 >> 연산자를 이용해 파일을 읽을 수 있다.
+
+``` cpp
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    
+    int main() {
+        
+        // ifstream class의 inputFiel method 호출, 파일명을 인수로 줌.
+        std::ifstream inputFile("input.txt");
+        
+        // 열려 있다면 
+        if (inputFile.is_open()) {
+            // inputFile의 각 line을 읽는다.
+            while (std::getline(inputFile, line)) {
+                std::cout << line << std::endl;   
+            }   
+            inputFile.close();
+        }   else {
+            std::cerr << "unable to open the file" << std::endl;   
+        }
+        
+        return 0;
+    }
+```
+
+### 7.2.2.Writing data to files using << and put()
+``` cpp
+#include <iostream>
+#include <fstream>
+#include <string>
+
+int main() {
+    std::ifstream inputFile("input.txt");
+    std::ofstream outputFile("output.txt");
+    
+    if(inputFile.is_open() && outputFile.is_open()) {
+        int number;
+        // whitespace로 구분해 끊어 읽으려면 >>를 사용
+        while (inputFile >> number) {
+            int doubledNumber = number * 2;
+            outputFile << doubledNumber << std::endl;
+        }
+        
+        inputFile.close();
+        outputFile.close();
+        
+    }   else {
+        std::cerr << "unable to open" << std::endl;
+    }
+    
+    return 0;
+}
+```
+
+put method는 std::ostream class의 member로, output stream에
+
+char 하나를 쓴다. 그래서 매개변수도 글자 하나씩 받음.
+
+``` cpp
+#include <iostream>
+#include <fstream>
+
+int main() {
+    std::ofstream outputFile("output.txt");
+    
+    if(outputFile.is_open()) {
+        outputFile.put('H');
+        outputFile.put('e');
+        outputFile.put('l');
+        outputFile.put('l');
+        outputFile.put('o');
+        outputFile.put('\n');
+        outputFile.put('w');
+        // ... 생략
+        
+        outputFile.close();
+    } else {
+        std::cout << "unable to open file" << std::endl;   
+    }
+    return 0;
+}
+```
+
+### 7.2.3 Checking for end-of-file and other I/O states
+file stream 관련 작업을 할 때는 데이터 처리를 제대로 하고 있는지 확인하기 위해
+
+eof 등의 다양한 I/O state를 체크하는 것이 중요하다.
+
+이런 I/O state 체크를 위해 file stream class에서 제공하는 몇가지 함수가 있다.
+
+- eof() : end of file에 도달했다면 true를 리턴
+- fail() : I/O operation이 실패하면 true를 리턴한다. (존재하지 안흔 파일을 읽으려 하거나, 타입이 다르거나..)
+- bad() : 심각한 에러 (파일이 오염되거나, 하드웨어 failure)가 있을 때 true를 리턴한다.
+- good() : 위 세 가지를 만나지 않았을 경우 true를 리턴
+
+``` cpp
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    
+    int main() {
+        std::ifstream inputFile("input.txt");
+        
+        if(inputFile.is_open()) {
+            std::string line;
+            while(getline(inputFile, line)) {
+                std::cout << line << std::endl;
+                
+                if(inputFile.eof()) {
+                    std:;cout << "reached eof" << std::endl;   
+                } else if (inputFile.fail()) {
+                    std::cout << "an I/O oper failed" << std::endl;
+                } else if (inputFile.bad()) {
+                    std::cout << "critial err" << std::endl;   
+                }
+            }
+            
+            inputFile.close();
+        } else {
+            std::cout << "unable to open file" << std::endl;
+        }
+        
+        return 0;
+    }
+```
+
+## 7.3 File modes and error handling
+### 7.3.1 File open modes (ios_base::in, ios_base::out, ios_base::app, etc.)
+file mode는 file stream을 어떻게 열고 파일을 다룰지를 특정한다.
+
+보통은 std::fstream을 사용할 때, 혹은 특정 모드로 file을 열 때
+(r/w가 동시에 일어나거나, data 병합이 일어나거나)
+
+cpp에서 파일 모드는 ios class 상수로 정의되고 OR 연산자와 결합되어 사용한다.
+
+- ios::in : read를 위해 파일을 연다. (ifstream의 디폴트)
+- ios::out : write를 위해 파일을 연다. (ofstream의 디폴트) 파일이 이미 존재한다면 내용물을 초기화한다.
+
+- ios::app : append를 위해 파일을 연다. 모든 write된 내용이 eof에 추가된다.
+
+- ios::ate : 파일을 열고, file position indicator를 eof로 이동시킨다.
+- ios::trunc : 파일이 존재한다면 초기화한다. ios::out의 디폴트
+- ios::binary : binary mode로 파일을 연다. 텍스트 파일이 아닌 이미지, 실행 파일을 열때 유용하다.
+
+``` cpp
+    #include <iostream>
+    #include <fstream>
+    
+    int main() {
+        // example.txt를 std::fstream class를 이용해 ios::in, ios::out mode로 연다.
+        // 이 경우 파일을 초기화하지 않고 읽고 쓰는게 가능
+        std::fstream file("example.txt", std::ios::in | std::ios::out);
+        
+        if(!file.is_open()) {
+            // 앞에 배운 여러 체크 함수들을 이용해 에러를 체크 할 수 있음
+            std::cerr << "err opening the file" << std::endl;
+            return 1;   
+        }
+        
+        file.close();
+        return 0;
+    }
+```
+
+### 7.3.2 Handling file I/O errors using exceptions and the fail() member function
+예외 처리를 이용해 I/O를 핸들링할 수 있다. exceptions() 함수를 이용해 원하는 에러를 처리할 수 있음.
+
+디폴트로 file stream은 에러 에외를 던지지 않지만 우리가 커스텀할 수 있다.
+
+```cpp
+    #include <iostream>
+    #include <fstream>
+    
+    int main() {
+        std::ifstream inputFile;
+        std::ofstream outputFile;
+        
+        try {
+            // fallbit, badbit에 err state 예외를 허용
+            inputFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            inputFile.open("input.txt");
+            
+            outputFile.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+            outputFile.open("output.txt");
+            
+            std::string line;
+            while (std::getline(inputFile, line)) {
+                outputFile << line << std::endl;   
+            }
+            
+        } catch(const std::ifstream::failure& e) {
+            std::cerr << "error: " << e.what() << std::endl;
+            return 1; 
+        }   
+        
+        inputFile.close();
+        outputFile.close();
+        return 0;
+    }
+```
+
+에러가 파일 열기, 읽기, 쓰기 과정에서 일어나면 std::ifstream::failure 예외가 던져져서
+
+catch block으로 빠지게 된다.
+
+what() method가 에러 내용을 출력한다.
+
+
+## 7.4 Standard Template Library (STL)
+STL은 cpp 표준 라이브러리의 일부로, 강력한 container class와 algorithm을 제공한다.
+
+데이터 구조등에 대해 수행하는 작업(e.g. 검색, 정렬 수정 등)을 편하게 해줌.
+
+1. Containers
+객체를 저장하고 메모리를 관리하는 데이터 구조체이다.
+e.g. std::vector, std::list, std::map, std:;set 등..
+
+2. iterators
+iterator는 컨테이너의 요소를 순회하고 접근하는데 사용된다.
+
+모든 컨테이너에 대한 공통적인 인터페이스를 제공해 다른 타입의 구조체에도 동일한 코드를 적용할 수 있게 해줌.
+
+3. algorithms
+여러 컨테이너에 대해 적용될 수 있는 제네릭 알고리즘
+e.g. std::sort, std::find, std::accumulate
+
+4. functors
+알고리즘의 인수로 사용될 수 있는 함수 객체이다. 코드 수정없이 알고리즘의 행동을 커스터마이즈 할 수 있게 해줌.
+
+5. allocators
+컨테이너에 대한 메모리 할당을 관리한다. 데이터 구조체에 대한 메모리 할당, 할당 해제 방식을 수정할 수 있음.
+
+STL에 파일 스틤과 직접 연관이 된건 아니지만 복잡한 프로그램에선 많이 마주치게 될거다.
+
+파일에서 많은 양의 데이터를 가져올 때 유용함.
+
 
 # 8. Introduction to the STL
-Containers (vector, list, deque, set, map, etc.)
-Iterators
-Algorithms (sort, find, etc.)
-Function objects and lambda expressions
-Advanced C++ Topics
+## 8.1 Containers (vector, list, deque, set, map, etc.)
+Container는 STL의 기본적인 컴포넌트 중 하나로, 데이터를 효율적이고 짜임새있는 구조로
+
+데이터를 저장, 조작하는 방법을 제공한다.
+
+몇 가지 class가 있는데 각각 특성과 use case가 다르다.
+
+### 8.1.1 Sequential containers
+- vector : 요소의 추가/제거에 따라 자동으로 사이즈가 조절되는 동적 배열. 
+    랜덤 요소로의 빠른 접근, 마지막 요소의 효율적인 삽입, 삭제가 가능하다.
+    index를 통해 요소에 접근하거나, 마지막 요소에 추가, 삭제를 할 때 유리하다.
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    
+    int main() {
+        // 표준 lib, int 속성 vector 선언 
+        std::vector<int> numbers = {1, 2, 3, 4, 5};
+        
+        std::cout << "the first element is: " << numbers[0] << std::endl;  
+        
+        // vector 마지막에 요소 추가
+        numbers.push_back(6);
+        
+        // vector에서 마지막 요소 제거
+        numbers.pop_back();
+        
+        for (const auto &number : numbers) {
+            std:: cout << number << " ";    
+        }
+        std::cout << std::endl;
+        return 0;
+    }
+```
+    
+- list : 컨테이너 어디에서든 효율적인 삽입과 삭제를 허용하는 doubly linked list. 
+    단, 개별 요소에의 직접적 접근은 불가능.
+    자주 컨테이너 중간에 삽입/삭제가 필요하고, 랜덤 엑세스는 필요없는 경우 사용한다.
+    
+``` cpp
+    #include <iostream>
+    #include <list>
+    
+    int main() {
+        std::list<int> numbers = {1,2, 3, 4, 5};
+        
+        numbers.push_front(0);
+        
+                for (const auto &number : numbers) {
+            std::cout << number << " ";
+        }   
+        std::cout << std::endl;
+        numbers.pop_front();
+        
+        for (const auto &number : numbers) {
+            std::cout << number << " ";
+        }   
+        std::cout << std::endl;
+        
+        return 0;
+    }
+```
+    
+
+- deque (double ended queue) : vector와 비슷하지만 처음과 끝 요소에서 효율적인 삽입과 삭제를 할 수 있다.
+    요소들에 빠른 랜덤 엑세스가 필요할 때, 컨테이너 양 끝에 삽입/삭제를 할 때 사용한다.
+
+``` cpp
+    #include <iostream>
+    #include <deque>
+    
+    int main() {
+        std::deque<int> numbers = {1,2,3,4,5};
+        
+        numbers.push_front(0);
+        
+        numbers.push_back(6);
+        
+        for (const auto &number : numbers) {
+            std::cout << number << " ";
+        }
+        std::cout << std::endl;
+        numbers.pop_front();
+           
+        numbers.pop_back();
+           
+        for (const auto &number : numbers) {
+            std::cout << number << " ";
+        }
+        std::cout << std::endl;
+           
+        return 0;
+    }
+```
+
+
+### 8.1.2 Associative containers
+
+- set : unique한 key들을 값으로 정렬한 집합. 키와 연결된 데이터는 저장하지 않는다.
+
+``` cpp
+    #include <iostream>
+    #include <set>
+    
+    int main() {
+        std::set<int> numbers = {1, 2, 3, 4, 5};
+        
+        // set에 element 추가
+        numbers.insert(6);
+        
+        if(numbers.find(3) != numbers.end()) {
+            std::cout << "3 is present" << std::endl;   
+        }   
+        
+        // set에서 element 제거
+        numbers.erase(2);
+        
+        for (const auto &number : numbers) {
+            std::cout << number << " ";   
+        }
+        std::cout << std::endl;
+        
+        return 0;
+    }
+```
+
+- multiset
+set과 비슷하지만, 동일 key를 여러 개 저장할 수 있다.
+
+- map
+k-v 쌍의 모음으로, key values로 정렬된다. 
+
+``` cpp
+    #include <iostream>
+    #include <map>
+    int main() {
+        std::map <std::string, int> ages;
+        
+        ages["Alice"] = 20;
+        ages["Bob"] = 25;
+        
+        std::cout << "Alice's age : " << ages["Alice"] << std::endl;
+        
+        for (const auto &pair : ages) {
+            std::cout << pair.first << " : " << pair.second << std::endl;   
+        }
+        
+        return 0;
+    }
+```
+
+### 8.1.3 Unordered associative containers
+k-v pair를 저장하는건 위와 동일하지만 순서를 유지해주지는 않는다. 요소를 조직화하기 위해
+
+해시 함수를 이용해 평균적으로 빠른 탐색 시간을 제공함.
+
+- unordered_set
+``` cpp
+    #include <iostream>
+    #include <unordered_set>
+    
+    int main() {
+        std::unordered_set<int> numbers = {1, 2, 3, 4, 5}
+        
+        numbers.insert(6);
+        
+        if (numbers.find(3) != numbers.end()) {
+            std::cout << "3 exist in unordered set" << std::endl;
+        }   
+        
+        numbers.erase(3);
+        
+        return 0;
+    }
+    
+```
+
+- unordered_map
+이 쪽도 순서가 없다는 것만 빼면 map과 동일
+
+``` cpp
+#include <iostream>
+#include <unordered_map>
+
+int main() {
+    std::unordered_map<std::string, int> ages = {{"Alice", 30}, {"Bob", 25}};
+    
+    std::cout << "Alice's age: " << ages["Alice"] << std::endl;
+    
+    ages["Diana"] = 28;
+    
+    if(ages.find("Bob") != ages.end()) {
+        std::cout << "Bob's age is in unordered map" << std::endl;   
+    }
+    
+    ages.erase("Bob");
+    
+    return 0;
+}
+
+```
+
+### 8.1.4 Container adaptors
+이들 자체가 완전한 컨테이너는 아니지만 기저의 컨테이너에 특정 인터페이스를 제공해준다.
+
+stack, queue, priority_queue가 있다.
+
+- stack
+stack은 LIFO 데이터 구조
+
+``` cpp
+    #include <iostream>
+    #include <stack>
+    
+    int main() {
+        std::stack<int> numbers;
+        
+        numbers.push(1);
+        numbers.push(2);
+        numbers.push(3);
+        
+        std::cout << "Top element : " << numbers.top() << std::endl;
+        
+        numbers.pop();
+        
+        if(!number.empty()) {
+            std::cout << "stack is not empty" << std::endl;   
+        }
+        
+        return 0;
+    }
+```
+
+- queue
+FIFO 구조.
+
+``` cpp
+    #include <iostream>
+    #include <queue>
+    
+    int main() {
+        std::queue<int> numbers;
+        
+        numbers.push(1);
+        numbers.push(2);
+        numbers.push(3);
+        
+        std::cout << "Front element : " << numbers.front() << std::endl;
+        
+        numbers.pop();
+        
+        if(!numbers.empty()) {
+            std::cout << "queue is not empty" << std::endl;   
+        }
+        
+        return 0;
+    }
+    
+```
+
+- priority_queue
+element가 계속 특정 우선순위에 의해 정렬되는 데이터 구조.
+
+디폴트로는 max-heap (큰 값을 가진 요소가 큰 priority) 이지만,
+
+min-heap를 가지거나, 커스텀할 수 있다.
+
+``` cpp
+    #include <iostream>
+    #include <queue>
+    
+    int main() {
+        std::priority_queue<int> numbers;
+        
+        numbers.push(1);
+        numbers.push(3);
+        numbers.push(2);
+        
+        std::cout << "top element : " << numbers.top() << std::endl;
+        
+        numbers.pop();
+        
+        if(!numbers.empty()) {
+            std::cout << "priority queue is not empty" << std::endl;   
+        }
+        
+        return 0;   
+    }
+    
+```
+
+
+## 8.2 Iterators
+컨테이너의 요소들을 순회하고 조작할 수 있게 해준다.
+
+다른 컨테이너 타입과 작동하는 일반화된 포인터라고 볼 수도 있다.
+
+### 8.2.1 Iterator types
+5가지 iterator 타입이 있다.
+
+1. input iterator
+컨테이너에서 요소를 읽는다. 수정은 못하고, 앞으로만 움직일 수 있음.
+
+2. output iterators
+컨테이너에 요소를 쓸 수는 있는데 반대로 읽지는 못함. 앞으로만 움직임.
+
+3. forward iterators
+읽고 쓸 수 있으며, 앞으로만 움직인다.
+
+4. bidrectical iterators
+앞, 뒤로 움직일 수 있다.
+
+5. random access iterators
+어떤 위치의 요소에게든 바로 접근할 수 있으며, 읽고 쓸 수 있고, 요소 간 이동을 위해 산술 연산을 수행한다.
+
+### 8.2.2 Basic iterator operationas
+iterator와 자주 함께 쓰는 연산자들은 다음이 있다.
+
+- increment(`++`) : 컨테이너 다음 요소로 이동
+- dereference(`*`) : iterator가 포인트 하고 있는곳으로 접근
+- comparison(`==`, `!=`) : 두 iterator가 동일한지 확인
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    
+    int main() {
+        std::vector<int> numbers = { 1,2,3,4,5};
+        
+        std::vector<int>::iterator it;   
+        
+        for (it = numbers.begin(); it != numbers.end(); ++it) {
+            std::cout << *it << " ";   
+        }
+        
+        return 0;
+    }
+```  
+
+### 8.2.3 Iterator operations and functions (advance, distance, next, prev)
+더하고 빼고 비교하는것 이외에도 좀 복잡한 연산을 위한 연산자가 있다.
+
+- std::advance
+특정 step만큼 앞/뒤로 이동하게 해준다.
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <iterator>
+    
+    int main() {
+        std::vector<int> numbers = {1, 2, 3, 4,5};
+        std::vector<int>::iterator it = numbers.begin();
+        
+        std::advance(it, 2);
+        
+        std::cout << *it << std::endl;
+        
+        return 0;
+    }
+```
+
+- std::distance
+두 요소 사이의 거리를 리턴
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <iterator>
+
+    int main() {
+        std::vector<int> numbers = {1, 2, 3, 4, 5};
+        std::vector<int>::iterator it1 = numbers.begin();
+        std::vector<int>::iterator it2 = numbers.end();
+        
+        std::ptrdiff_t dist = std::distance(it1, it2);
+        
+        std::cout << "distacne btw two vectors" << dist << std::endl;
+        
+        return 0;
+    }
+```
+
+- std::next
+특정 step 이후의 iterator를 반환한다.
+
+``` cpp
+    #include <iostream>
+#include <vector>
+#include <iterator>
+
+int main() {
+    std::vector<int> numbers = { 1, 2, 3, 4, 5};
+    
+    // numbers의 첫 요소 지정
+    std::vector<int>::iterator it = numbers.begin();
+    
+    // it에서 3개 이후의 요소
+    std::vector<int>::iterator nextIt = std::next(it, 3);
+    
+    std::cout << "position 4 :" << *nextIt << std::endl;
+    
+    return 0; 
+}
+```
+
+- std::prev
+이전 iterator로 원하는 만큼 돌아간다.
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <iterator>
+    
+    int main() {
+        std::vector<int> numbers = { 1, 2, 3, 4,5 };
+        std::vector<int>::iterator it = numbers.end();
+        
+        int n = 2;
+        // n step 만큼 뒤로 이동
+        std::vector<int>::iteraotr prevIt = std::prev(it, n);
+        
+        std::cout << *prevIt << std::endl;
+        
+        return 0;  
+    }
+```
+
+## 8.3 Algorithms (sort, find, etc.)
+## 8.4 Function objects and lambda expressions
+## 8.5 Advanced C++ Topics
 
 # 9. Templates
 Exception handling (try, catch, throw)
