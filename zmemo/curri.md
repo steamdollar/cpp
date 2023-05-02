@@ -1495,8 +1495,498 @@ int main() {
 ```
 
 ## 8.3 Algorithms (sort, find, etc.)
+
+### 8.3.1 Sorting algorithms
+cpp STL은 container 안의 요소들을 정렬할 수 있도록 정렬 알고리즘이 있다.
+
+- sort
+[first, last) 의 범위를 오름/내림 차순으로 정렬한다. 복잡도는 O(n*log(n))
+
+``` cpp
+    #include <algorithm>
+    #include <vector>
+    
+    std::vector<int> numbers = {5, 3, 1, 4, 2};
+    std::sort(numbers.begin(), numbers.end())
+
+```
+
+- stable_sort
+sort와 비슷하지만 동일한 요소의 전후 순서를 보장해준다.
+``` cpp
+    #include <alforithm>
+    #include <vector>
+    
+    std::vector<int> numbers = {5,3,1,4,2};
+    std::stable_sort(numbers.begin(), numbers.end());
+```
+
+- partial_sort
+[first, last) 범위의 요소를 sort 해줌. 나머지는 무작위로 남음.
+``` cpp
+    #include <algorithm>
+    #include <vector>
+    
+    std::vector<int> numbers = {5,3,1,4,2};
+    std::partial_sort(numbers.begin(), nermbers.begin() + 3, numbers.end());
+    // 1, 2, 3, 5, 4
+```
+
+- nth_element
+반복자 n번째가 가리키는 요소가 정렬된 시퀀스에서와 동일한 위치를 갖도록 [첫 번째, 마지막) 범위의 요소를 재배열한다. 복잡도는 O(n)
+
+``` cpp
+    std::vector<int> numbers = {5,3,1,4,2};
+    std::nth_element(numbers.begin(), numbers.begin() + 2, numbers.end());
+```
+
+
+### 8.3.2 Searching algorithms (find, find_if, binary_search, lower_bound, upper_bound)
+
+탐색 알고리즘은 특정 조건이나 값을 만족하는 요소를 찾는데 사용된다.
+
+- find
+특정 값을 탐색해 처음 만나는 타겟 값의 위치를 리턴한다. 못 찾았을 경우 마지막 요소를 리턴한다.
+``` cpp
+    #include <algorithm>
+    #include <vector>
+    #include <iostream>
+    
+    int main() {
+        std::vector<int> numbers = {4, 2, 7, 5, 9, 1};
+        int target = 5;
+        
+        auto it = std::find(numbers.begin(), numbers.end(), target);
+        
+        if(it != numbers.end()) {
+            std::cout << "Found " << target << " at position: " << std::distance(numbers.begin(), it) << '\n';
+        } else {
+            std::cout << target << "not found.\n"
+        }
+        return 0;
+    }
+```
+
+- find_if
+특정 조건을 만족하는 요소를 찾는다. 만족하는 첫 번째 요소를 리턴, 없다면 마지막 요소를 리턴
+
+``` cpp
+    bool is_even(int x) {
+        return x % 2 == 0;   
+    }
+    
+    int main() {
+        std::vector<int> numbers = { 3,7,5,2,1,9};   
+        
+        auto it = std::find_it(numbers.begin(), numbers.end(), is_even);
+        
+        if (it != numbers.end()) {
+            std::cout << "Found even number : " << *it << '\n';   
+        } else {
+            std::cout << "no even number found";
+        }
+        
+        return 0;
+    }
+```
+
+- binary_search
+특정 값이 정렬된 컨테이너에 있는지 확인.
+있다면 true 리턴, vice versa. T/F만 알려줘서 binary라고 하는 듯.
+
+``` cpp
+    #include <algorithm>
+    #include <vector>
+    #include <iostream>
+    
+    int main() {
+        std::vector<int> numbers = { 1, 3, 5, 7, 9};
+        int target = 5;
+        
+        if(std::binary_search(numbers.begin(), numbers.end(), target)) {
+            std::cout << target << " found. \n";   
+        } else {
+            std::cout << target << " not found.\n";
+        }
+        
+        return 0;
+    }
+```
+
+- lower/upper bound
+특정 값보다 작지/크 않은 첫 번째 요소의 index를 리턴
+
+lower는 '작지 않은' 값이고 upper는 '큰' 값임.
+
+``` cpp
+    #include <algorithm>
+    #include <vector>
+    #include <iostream>
+    
+    int main() {
+        std::vector<int> numbers {1,3,5,5,5,7,9};
+        int target = 5;
+        
+        auto lower = std::lower_bound(numbers.begin(), numbers.end(), target);
+        auto upper = std::upper_bound(numbers.begin(), numbers.end(), target);
+        
+        // target == 5 보다 크지 않은 첫 요소 5의 index 값 2 리턴
+        std::cout << "lower bound: " << std::distance(numbers.begin(), lower) << '\n';
+        
+        // target보다 큰 첫 요소 7의 index값 5 리턴
+        std::cout << "upper bound: " << std::distance(numbers.begin(), upper) << '\n';
+        
+        return 0;
+    }
+```
+
+### 8.3.3 Modifying algorithms (copy, move, transform, fill, replace, remove, unique)
+컨테이너 안의 값들을 바꿔주는 함수들.
+
+- copy
+범위 내의 값들을 복사한다. 복사된 값을 받는 컨테이너 크기가 충분해야 함.
+``` cpp
+    vector<int> source = { 1,2,3,4,5};
+    vector<int> destination(5);
+    
+    copy(source.begin(), source.end(), destination.begin());
+```
+
+- move
+특정 값들을 다른 컨테이너로 이동한다. 마찬가지로 값을 받는 컨테이너 크기가 충분히 커야 함.
+이동하면 원래 컨테이너에서 그 값은 null값이 됨.
+``` cpp
+    vector<string> source = {"hello", "world"};
+    vector<string> destination(2);
+    
+    move(source.begin(), source.end(), destination.begin());
+```
+
+- transform
+각 요소에 함수를 적용해 다른 컨테이너에 넣는다. js의 map이랑 비슷한듯.
+
+``` cpp
+    vector<int> numbers = {1,2,3,4,5};
+    vector<int> squares(5);
+    
+    transform(numbers.begin(), numbers.end(), squares.begin(), [](int x) {
+        return x*x;
+    };
+    
+```
+
+- fill
+범위 내 모든 element에 값을 할당
+``` cpp
+    std::vector<int> numbers(5);
+    fill(numbers.begin(), numbers.end(), 42);
+```
+
+- replace
+주어진 범위내 모든 타깃 값을 지정된 값으로 교채
+
+``` cpp
+    std::vector<int> numbers = {1,2,3,4,5};
+    replace(numbers.begin(), numbers.end(), 2, 42);
+```
+
+- remove
+범위 내의 타깃값을 전부 제거. 제거된 자리는 null값이 남음.
+
+``` cpp
+    std::vector<int> numbers = { 1,2,3,2,1};
+    auto new_end = remove(numbers.begin(), numbers.end(),2);
+    numbers.erase(new_end, numbers.end());
+```
+
+- unique
+중복된 요소를 하나만 남기고 제거. 지워진 값은 null값이 남음
+``` cpp
+    std::vector<int> numbers = {1,1,2,2,3,3};
+    auto new_end = unique(numbers.begin(), numbers.end());
+    numbers.erase(new_end, numbers.end());
+```
+
+
+### 8.3.4 Numeric algorithms (accumulate, inner_product, partial_sum, adjacent_difference)
+범위 내 요소에 대해 산술적 연산을 수행
+
+- accumulate
+주어진 범위 내 요소들의 합을 계산
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <numeric>
+    
+    int main() {
+        std::vector<int> numbers = {1,2,3,4,5};
+        
+        // 3rd param : initial value
+        int sum = std::accumulate(numbers.begin(), numbers.end(), 0);
+        
+        std::cout << " Sum : " << sum << std::endl;
+        
+        return 0;   
+    }
+```
+
+- inner_product
+요소들의 두 시퀀스의 inner product를 계산
+이거 설마 벡터 내적 말하는건가?
+
+맞네...
+
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <numerio>
+    
+    int main() {
+        std::vector<int> v1 = { 1,2,3,4,5};
+        std::vector<int> v2 = { 6,7,8,9,10};
+        
+        int product = std::inner_product(v1.begin(), v1.end(), v2.begin, 0); 
+        
+        std::cout << "inner product  " << product << std::endl;
+        
+        return 0;
+    }
+    
+```
+
+- partial_sum : 부분합
+``` cpp
+    #include <iostream>
+    #include <vector>
+    #include <numeric>
+    #include <iterator>
+    
+    int main() {
+        std::vector<int> numbers = { 1,2,3,4,5};
+        std::vector<int> result(numbers.size());
+        
+        std::partial_sum(numbers.begin(), numbers.end(), result.begin());
+        
+        std::cout << "partial sum :";
+        std::copy(result.begin(), result.end(), std::ostream_iterator<int>(std::cout, " "));
+        std::cout << std::endl;
+        
+        return 0;
+           
+    }
+    
+```
+
+- adjacent_difference
+주어진 range에서 인접한 요소의 차이를 계산 후, 그 값을 다른 range에 저장
+
+``` cpp
+    int amin() {
+        std::vector<int> numbers = { 1, 2, 4, 7, 11 };
+        std::vector<int> result(numbers.size());
+        
+        std::adjacent_difference(numbers.begin(), numbers.end(), result.begin());
+        
+        std::cout << "Adjacent diff : ";
+        std::copy(result.begin(), result.end(), std::ostream_iterator<int>(std::cout, " "));
+        std::cout << std::endl;
+        
+        return 0;
+    }
+```
+
+
 ## 8.4 Function objects and lambda expressions
+## 8.4.1 function objects (functors)
+함수로서 호출되는 객체. class를 operator()를 이용해 overload해 함수 객체를 만들 수 있다.
+
+``` cpp
+    #include <iostream>
+    
+    // overload된 operaotr를 가진 Adder 정의
+    class Adder {
+    public:
+        int operator() (int a, int b) const {
+            return a + b;   
+        }   
+    };
+    
+    int main() {
+        // Adder class add를 생성
+        Adder add;
+        
+        // add를 함수처럼 호출 가능
+        int sum = add(3,4);
+        std::cout << "3 + 4 = " << sum << std::endl; 
+        
+        return 0;  
+    }
+```
+
+### 8.4.2 Lambda expressions and closures
+람다 표현은 함수 객체를 더 정확하게 정의할 수 있는 방식이다. 이름이 없고 정의해 바로 사용할 수 있음.
+
+``` cpp
+    [capture](parameters) -> return_type {body}
+```
+
+``` cpp
+    #include <iostream>
+    
+    int main() {
+        auto add = [](int a, int b) -> int { return a + b };
+        int sum = add(3,4);
+        std::cout << " 3 + 4 = " << sum << std::endl;
+        
+        return 0;
+    }
+```
+
+Closures는 주변 범위에서 변수들을 capture한 람다 표현식으로 부터 생성된 함수 객체이다.
+
+람다 표현식의 capture clause는 람다 표현식이 scope에서 어떻게 변수를 캡쳐하는지 정의한다.
+
+(& for reference, = for value)
+
+### 8.4.3 standar lib function objs
+cpp 표준 lib는 비교, 산술, 논리 연산자 등을 위한 함수 객체를 미리 정의해두었다.
+
+이건 굳이 여기서 볼 필요는 없을 듯.
+
+
 ## 8.5 Advanced C++ Topics
+
+### 8.5.1 Smart pointers (unique_ptr, shared_ptr, weak_ptr)
+스마트 포인터는 메모리 관리를 자동으로 하게 해주는 cpp의 기능이다.
+
+더 필요가 없다면 메모리를 deallocate 해버리는걸 보장해주는데,
+
+스마트 포인터는 세 가지가 있음.
+
+1. unique_ptr
+> raw 포인터를 감싸는 경량 wrapper 로, 하나의 raw pointer를 저장하고
+
+범위를 벗어날 때 대상을 삭제한다.
+
+고유한 소유권을 가지므로 복사는 안되고 이동만 가능.
+
+이동될 경우 원래 unique_ptr은 nullptr로 설정되고,
+
+대상의 소유권이 대상 unique_ptr로 이전된다.
+
+따라서 마지막 uinque_ptr이 범위를 벗어날 때  객체는 한 번만 삭제됨.
+
+``` cpp
+    #include <iostream>
+    #include <memory>
+    
+    int main() {
+        std::unique_ptr<int> ptr1(new int(42));
+        // std::unique_ptr<int> ptr2 = ptr1 ;
+        // > err : unique_ptr은 복사될 수 없음
+        
+        std::unique_ptr<int> ptr2 = std::move(ptr1);
+        // transfer ownership from ptr1 to ptr2
+        
+        std::cout << *ptr2 << std::endl;
+        
+        return 0;
+    }
+```
+
+2. shared_ptr
+> 개체에 대한 raw pointer와 참조 카운트라는 두 가지 정보를 저장하는 스마트 포인터 
+
+참조 갯수는 별도의 제어 블록에 저장되고, 이 블럭은 개체에 대해 첫 번째 shared_ptr 생성시 생성.
+
+이 제어 블록은 개체를 가리키는 shared_ptr의 수를 추적한다.
+
+여러 개의 인스턴스가 동적 할당된 대상에 대한 소유권을 공유.
+
+모든 shared_ptr이 범위를 벗어나거나 리셋되면 대상과 제어 블록이 삭제된다.
+
+리소스를 여러 개 인스턴스가 공유해야 할때 유용하다.
+
+``` cpp
+    #include <iostream>
+    #include <memory>
+    
+    int main() {
+        std::shared_ptr<int> ptr1(new int(42));
+        std::shared_ptr<int> ptr2 = ptr1;
+        
+        std::cout << *ptr1 << " " << *ptr2 << std::endl;
+        
+        return 0;   
+    }
+
+```
+
+3. weak_ptr
+> 하나 이상의 shared_ptrs가 소유하고 있는 동적으로 할당된 객체에 대한 비소유 참조를 보유한다. shared_ptrs 간의 순환 종속성을 끊는 데 사용할 수 있으며, 수명을 연장하지 않고 객체를 관찰하는 데에도 사용할 수 있다. 오브젝트에 액세스하려면 weak_ptr에서 shared_ptr을 생성해야 한다.
+
+shared_ptr과 유사하지만 참조 수에 기여하지 않는다. shared_ptr와 raw pointer, 제어 블록에 대한 포인터를
+
+저장한다는 건 동일하지만 참조 횟수를 변화시키지 않고 객체를 관찰하기만 한다.
+
+대상에 접근하려면 weak_ptr에서 shared_ptr을 생성해야 한다. 
+
+객체가 살아있다면 (가리키는 shared_ptr이 존재한다면)
+
+참조 카운트가 증가하고 개체에 접근할 수 있다.
+ 
+
+``` cpp
+    #include <iostream>
+    #include <memory>
+    
+    int main() {
+        std::shared_ptr<int> ptr1(new int(42));
+        std::weak_ptr<int> wptr1(ptr1); // 소유권을 공유하지 않음
+        
+        if(auto ptr2 = wptr1.lock()) {
+            std::cout << *ptr2 << std::endl;
+        }
+        
+        return 0;   
+    }
+```
+
+중요하건 이들 모두 리소스 관리를 위해 사용된다는 것이고, RAII 방식을 이용한다는 점이다.
+
+(resource acquistion is initiailization 대상의 생명 주기에 리소스의 생명 주기를 묶는 것)
+
+
+### 8.5.2 Move semantics and rvalue references
+1. Move semantics
+> cpp 11의 기능으로, 리소스 (메모리 등)의 효율적인 이동을 도와준다.
+
+컴파일러가 리소스를 한 개체에서 다른 개체로 복사가 아니라 이동을 시킬 수 있게 해줌으로써
+
+특정 작업을 최적화한다.
+
+2. Rvalue References
+> 1을 지원하기 위해 cpp 11에서 나온 새로운 레퍼런스의 타입
+rvalue reference는 이름이 없고 이후에 refer도 될 수 없는 일시적인 객체나 값인 rvalue에 bind된다.
+
+cpp 03에선 lvalue에 bind되는 lvalue reference만 있었다 (메모리에 주소가 있는 명명된 객체나 값)
+
+rvalue reference를 사용하면 rvalue를 특정해 핸들링하는 함수를 생성할 수 있다.
+
+``` cpp
+// rvalue ref (int&&) 가 rvalue(42)에 bind
+    int&& rvalue_ref = 42;
+```
+
+rvalue ref를 파라미터로 사용하는 함수를 생성해 move semantics를 사용할 수 있다.
+
+``` cpp
+    void process_string(std::string&& str) {
+        //...   
+    }
+```
+
+### 8.5.3 Template metaprogramming
 
 # 9. Templates
 Exception handling (try, catch, throw)
