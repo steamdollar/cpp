@@ -97,3 +97,19 @@
 ### 8.5.1 Smart pointers (unique_ptr, shared_ptr, weak_ptr)
 ### 8.5.2 Move semantics and rvalue references
 ### 8.5.3 Template metaprogramming
+
+# 9. Templates
+## 9.1 Introduction to templates
+### 9.1.1 Function templates
+### 9.1.2 Class templates
+### 9.1.3 Template specialization
+### 9.1.4 Variadic templates
+## 9.2 Template type deduction
+## 9.3 Template argument deduction and SFINAE (Substitution Failure Is Not An Error)
+## 9.4 Template aliases
+
+# 10. Advanced C++ Concepts
+## 10.1 Exception handling (try, catch, throw)
+## 10.2 Namespaces
+## 10.3 Multithreading
+## 10.4 C++ Best Practices and Design Patterns

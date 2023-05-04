@@ -1986,15 +1986,485 @@ rvalue ref를 파라미터로 사용하는 함수를 생성해 move semantics를
     }
 ```
 
+// example
+
+``` cpp
+    class MyString {
+    public:
+        MyString(const char *str) {
+            size = strlen(str) + 1;
+            data = new char[size];
+            strcpy(data, str);
+        }   
+        
+        ~MyString() {
+            delete[] data;   
+        }
+        
+    private:
+        char* data;
+        size_t size;
+    }
+    
+```
+
+MyString 객체에서 data pointer의 소유권을 이전하고 싶다면,
+
+MyString을 rvalue fererence로 받는 move constructor를 만들 수 있다.
+
+``` cpp
+    class MyString {
+        // ...중략
+        
+        // move constructor
+        MyString(MyString&& other) noexcept : data(other.data), size(other.size) {
+            other.data = nullptr;
+            other.size = 0;   
+        }
+    }
+```
+
+이제 일시적인 MyString obj를 가지고 있을 때 move constructor가
+
+copy constructor 대신 호출되고, 리소스의 효율적인 이동을 가능하게 해준다.
+
+``` cpp
+    MyString create_string() {
+        MyString temp("hello world!");
+        return temp;   
+    }
+    
+    int main() {
+        MyString str = create_string();   
+    }
+    
+```
+
+여기에 더해 move assignment operator를 사용해,
+
+하나의 MyString 객체의 리소스를 효율적으로 이동시킬 수 있다.
+
+``` cpp
+    class MyString {
+        // ...중략
+        
+        // Move assignment operator
+        MyString& operator=(MyString&& other) noexcept {
+            if (this != &other) {
+                delete[] data;
+                date = other.data;
+                size = other.size;
+                other.data = nullptr;
+                other.size = 0;   
+            }   
+            return *this;
+        }   
+    }
+```
+
+이제 일시적인 MyString 객체를 다른 곳에 할당할 때, move assignment 연ㅅ나자가
+
+copy 대신 할당된다. 마찬가지로 리소스 사용 효율이 증가
+
+``` cpp
+    int main() {
+        MyString str1("hello");
+        MyString str2("world");
+        // copy하지 않으므로 효율이 좋음
+        str1 = std::move(str2);   
+    }
+```
+
 ### 8.5.3 Template metaprogramming
+컴파일 단계에서 템플릿을 사용해 코드를 생성하는 테크닉이다.
+
+이 접근 방식은 생성된 코드가 특정 타입과 유스케이스에 맞춰져 있으므로
+
+강력한 추상화와 최적화를 제공한다.
+
+기본적인 아이디어는 컴파일 과정에서 계산 혹은
+
+코드 생성을 위해 template specialization과 recursion을 사용하는 것에 있다.
+
+``` cpp
+    // Base case
+    template<unsigned int N>
+    struct Factorial {
+        static constexpr unsigned int value = N * Factorial<N - 1>::value;
+    }
+    
+    // specialization for N = 0
+    template<>
+    struct Factorial<0> {
+        static constexpr unsigned int value = 1;   
+    }
+    
+```
+
+이 template을 이용하면 컴파일 단계에서 팩토리얼 계산이 가능하다.
+``` cpp
+    constexpr unsigned int fact5 = Factorial<5>::value;
+```
+
+다른 예시로 컴파일 과정에서 정수의 시퀀스를 생성하는 코드가 있음
+
+``` cpp
+    template<int... Ints>
+    struct IntegerSequence {};
+    
+    template<int N, int... Ints>
+    struct GenerateSequence : GenerateSequence<N - 1, N - 1, Ints...> {};
+    
+    template<int... Ints>
+    struct GenerateSequence<0, Ints...> {
+        using type = IntegerSequence<Ints...>;   
+    }
+    
+    using MySequence = GenerateSequence<5>::type;
+```
+
+갑자기 너무 어려워졌어..
+
 
 # 9. Templates
-Exception handling (try, catch, throw)
-Namespaces
-Smart pointers and memory management
-Multithreading
-Move semantics and rvalue references
-C++ Best Practices and Design Patterns
+## 9.1 Introduction to templates
+template은 cpp에서 제네릭, 재활용 가능한 코드를 위한 cpp의 기능이다.
+
+다양한 타입에서 코드를 복붙할 필요 없이 작동하는 함수, class를 사용 가능
+
+1. 함수 template
+여러 다른 타입의 변수와 작동할 수 있는 함수를 생성할 수 있게 해준다.
+컴파일러가 컴파일 단계에서 각 타입에 대한 적절한 함수를 만들어 줌.
+
+2. class template
+다양한 타입과 작동할 수 있는 generic class 생성. 
+하나 이상의 template 파라미터에 의존하는 member 함수와 변수와 함께
+template class를 생성 가능
+
+### 9.1.1 Function templates
+generic type (known as tempalte parameter) 과 함께 정의되는 함수.
+
+파라미터는 < >로 래핑되어 있고, 사용할 때는 실제 타입이 이 자리에 들어간다.
+
+``` cpp
+    template <typename T>
+    T add ( T a, T b) {
+        return a + b;   
+    }
+```
+
+// e.g.
+
+``` cpp
+    #include <iostream>
+    
+    template <typename T>
+    T max(T a, T b) {
+        return (a > b) ? a : b;   
+    }
+    
+    int main() {
+        int a = 5, b = 7;
+        double c = 3.14, d = 4.67
+        
+        std::cout << "Max(a, b) = " << max(a, b) << std::endl;
+        std::cout << "Max(c, d) = " << max(c, d) << std::endl;
+        
+        return 0;
+    }
+    
+```
+
+### 9.1.2 Class templates
+
+generic class들을 사용, 이 쪽은 하나 이상의 template 파라미터를 가질 수 있다.
+
+``` cpp
+    template <typename T>
+    class Box {
+    public:
+        Box(T item) : item_(item) {}
+        T get() const { return item_;}
+        void set(T item) { item_ = item;}
+    
+    private:
+        T item_;
+    }
+    
+```
+
+// e.g.
+
+``` cpp
+    #include <iostream>
+    
+    template <typename T>
+    class Pair {
+    public:
+        Pair(T first, T second) : first_(first), second_(second) {}
+        
+        T getFirst() const { return first_;}
+        T getSecond() const { return second_;}
+        
+    private:
+        T first_;
+        T second_;
+    }
+    
+    int main() {
+        Pair<int> intPair(1,2);
+        Pair<std::string> strPair("Hello", "World");
+        
+        std::cout << "Int Pair: (" << intPair.getFirst() << ", " << intPair.getSecond() << ")" << std::endl;
+        std::cout << "String Pair: (" << strPair.getFirst() << ", " << strPair.getSecond() << ")" << std::endl; 
+        
+        return 0;
+    }
+    
+```
+
+### 9.1.3 Template specialization
+cpp에서 특정 타입이나 값에 대해 template의 행동을 커스터마이즈할 수 있는 cpp의 테크닉.
+
+generic이 특정 값이나 타입에 대해 효율적이거나 적합하지 않을 때 사용한다.
+
+specialization은 두 종류가 있는데, 하나는 full specialization, 하나는 partial..
+
+전자는 특정 타입/값에 대래 특정 implementation을 정의하는데 사용하고,
+
+후자는 몇개의 공통 분모를 가진 타입/값들의 구현을 위해 사용한다.
+
+- full specialization
+function template의 경우, 특정 template argument 집단에 implementation을 구현한다.
+
+``` cpp
+    #include <iostream>
+    
+    template <typename T>
+    void print(const T& value) {
+        std::cout << "generic : " << value << std::endl;   
+    }
+    
+    template <>
+    void print(const char& value) {
+        std::cout << "specialized for char : " << value << std::endl;   
+    }
+    
+    
+    int main() {
+        int a = 42;
+        char b = 'c';
+        
+        print(a); // 위쪽 print 함수 실행
+        print(b); // 아래 쪽 print 함수 실행
+        
+        return 0;
+    }
+    
+```
+
+class template에서 full specialization은 특정 template 인수 집합을 사용해
+
+class template에 대한 특정한 구현을 제공한다.
+
+``` cpp
+    #include <iostream>
+    
+    template <typename T>
+    class MyClass {
+    public:
+        void print() {
+            std::cout << "Generic MyClass" << std::endl;    
+        }   
+    }
+    
+    template <>
+    class MyClass<int> {
+    public :
+        void print() {
+            std::cout << "MyClass specialized for int : " << std::endl;    
+        }   
+    }
+    
+    int main() {
+        MyClass<double> obj1;
+        MyClass<int> obj2;
+        
+        obj1.print(); // 위쪽 MyClass.print 실행
+        obj2.print(); // 아래쪽 Myclass.print 실행
+        
+        return 0;   
+    }
+```
+
+- partial specialization
+class template에만 적용가능하다. 복수의 타입/값에
+
+공통적인 특성을 부여하고 싶을 떄 사용한다.
+
+``` cpp
+    #include <iostream>
+    
+    template <typename T1, typename T2>
+    class Myclass {
+    public:
+        void print(){
+            std::cout << "Generic Myclass" << std::endl;   
+        }   
+    }
+    
+    template <typename T>
+    class MyClass<T, int> {
+    public :
+        void print() {
+            std::cout << "MyClass partially specialized for 2nd type being int" << std::endl;
+        }   
+    }
+    
+    int main() {
+        MyClass<double, char> obj1;
+        MyClass<double, int> obj2;
+        
+        obj1.print();
+        obj2.print();
+
+        return 0;
+    }
+    
+    
+```
+
+### 9.1.4 Variadic templates
+가변적인 갯수의 인수를 이용해 template을 생성할 수 있게 해준다.
+
+가변적인 갯수의 타입/값 (미리 특정되지 않은)을 사용하는 함수나 class에 대해 유리하다.
+``` cpp
+    #include <iostream>
+    
+    // base case for variadic template recursion
+    void print() {}
+    
+    template <typename T, typename ...Args>
+    void print(const T& value, const Args&... args) {
+        std::cout << value << " ";
+        print(args...);   
+    }
+    
+    int main() {
+        print(1, 2.0, "three" , 4)
+        
+        return 0;  
+    }
+    
+```
+
+variadic template function은 T tempalte parameter를 사용해 첫 번째 인수를 capture
+> 나머지는 Args...를 이용해 capture한다.
+> 첫 번째 인수를 출력후, 나머지 인수와 함께 재귀적으로 호출됨
+
+class template에도 적용할 수 있다.
+
+``` cpp
+    #include <iostream>
+    #include <tuple>
+    
+    // variadic template class이며,
+    // template 인수를 std::tuple
+    // MyClass를 선언
+    
+    template <typename... Args>
+    class MyClass {
+    public:
+        MyClass(const Args&... args) : data(args...) {}
+        
+        // tuple에 있는 element 수를 출력하는 함수
+        void printSize() {
+            std::cout << "Size : " << std::tuple_size<decltype(data)>::value << std::endl;
+        }
+        
+    private:
+        std::tuple<Args...> data;
+    }
+    
+    int main(){
+        MyClass<int, double, char> obj1(1, 2.0, '3');
+        MyClass<std::string, bool> obj2("hello", true);
+        
+        obj1.printsize();
+        obj2.printSize();
+        
+        return 0;
+        
+    }
+```
+
+## 9.2 Template type deduction
+명시적으로 template args를 특정하지 않고 class template을 초기화하거나 function template을 호출할 때,
+
+컴파일러가 자동으로 template args를 추론하는 process
+
+> template을 사용하기 쉽고, 직접 작성할 코드 양을 줄여준다.
+
+``` cpp
+    template <typename T>
+    T getMax(const T& a, const T& b) {
+        return ( a > b ) ? a : b;   
+    }
+    
+    int main() {
+        int a = 3;
+        int b = 5;
+        
+        // int ㅇ인수들을 넣으면 컴파일러가 T가 int라는걸 알아서 추론함
+        int maxInt = getMax(a,b);
+        
+        double x = 3.14;
+        double y = 2.71;
+        
+        // double도 마찬가지
+        double maxDouble = getMax(x,y);
+        
+        return 0;
+        
+    }
+    
+```
+
+class template 경우의 예시는 다음과 같음
+``` cpp
+
+    template <typename T>
+    class MyClass {
+    public:
+        MyClass(const T& value) : data (value) {}
+        
+        void print() {
+            std::cout << data << std::endl;   
+        }   
+    private:
+        T data;
+    };
+    
+    int main() {
+        MyClass obj1(42);
+        obj1.print();
+        
+        MyClass obj2(std::string("hello"));
+        obj2.print();
+        
+        return 0;
+    }
+```
+
+규칙, 한계
+1. 함수 인수가 포인터나 reference라면 template type 추론의 목적을 위해 무시된다.
+
+2. template parameter가 여러 함수의 인수로 쓰인다면 추론된 type이 전부 동일해야 한다.
+
+3. 함수 인수가 const 혹은 volatile value라면 마찬가지로 무시된다.
+
+## 9.3 Template argument deduction and SFINAE (Substitution Failure Is Not An Error)
+## 9.4 Template aliases
 
 # 10. Coding style and conventions
 C++11, C++14, C++17, and C++20 features
