@@ -2464,7 +2464,109 @@ class template 경우의 예시는 다음과 같음
 3. 함수 인수가 const 혹은 volatile value라면 마찬가지로 무시된다.
 
 ## 9.3 Template argument deduction and SFINAE (Substitution Failure Is Not An Error)
+SFINAE는 template 인수 치환으로 인해 프로그램이 유용하지 않은 경우,
+
+컴파일러가 함수 오버로딩 및 template 특수화를 위한 특정 후보를 제거할 있도록 하는 
+
+cpp의 원칙이다.
+
+컴파일러가 template을 인스턴스화할때 template parameter를 대응하는 치환 프로세스를 수행한다.
+
+치환 결과 유효 프로그램이 나오면 인스턴스화가 성공, 반대로 실패헀을 경우,
+
+컴파일러는 오류를 내는 대신 다른 후보 (있는 경우)를 계속 시도한다.
+
+> 주어진 인수 기반 가장 적합한 템플릿 특수화를 자동으로 선택할 수 있으므로
+
+템플릿 및 템플릿 특수화 작업을 할 때 특히 유용함.
+
+``` cpp
+    #include <iostream>
+    #include <type_traits>
+    
+    template <typename T>
+    typename std::enable_if<std::is_integral<T>::value, bool>::type
+    isEven (const T& value) {
+        return (value % 2) == 0;   
+    }
+    
+    template <typename T>
+    typename std::enable_if<!std::is_integral<T>::value, bool>::type
+    isEven(const T& value) {
+        return false;
+    }
+    
+    int main() {
+        int x = 4;
+        double y = 4.5;
+        
+        // template argument deduction : T 를 int로 추론
+        std::cout << "Is " << x << " even?" << std::boolalpha << isEven(x) << std::endl;
+        
+        // template argument deduction : T를 double로 추론
+        std::cout << "Is " << y << "even ?" << std::boolalpha << isEven(y) << std::endl;
+        
+        return 0;
+    }
+    
+```
+
+두 가지 함수 템플릿을 std::enable_if를 이용해 다른 제한 조건을 걸어 만들었는데,
+
+첫 번째는 T가 integral일때, 두 번째는 T가 integral이 아닐때 작동한다.
+
+각 다른 타입을 이용해 isEven 호출하면 컴파일러가 알아서 인수를 추론 후, 
+
+적절한 template specialization을 SFINAE 원칙을 기반으로 선택한다.
+
+cf) std::boolalpha는 cpp 표준 lib에서 제공하는 I/O manipulator로 boolean 값을 formatting 해줌.
+
+(1 for true, vice versa)
+
+위 예시 코드에서 std:;boolalpha가 없다면 1이 나오고, 있으면 true가 나옴.
+
 ## 9.4 Template aliases
+존재하는 template의 alias를 생성하는 방법. 복잡한 이름이나 특정 template 인스턴스화에서
+
+더 의미가 있는 이름을 주고 싶을 때 사용한다. `using` 키워드를 사용하면 됨.
+
+### 9.4.1 Basic template alias
+``` cpp
+    template<typename T>
+    // std::vector를 줄여 Vec으로 사용할 수 있음
+    using Vec = std::vector<T>;
+    
+    Vec<int> int_vector;
+    Vec<std::string> str_vector;
+    
+```
+
+### 9.4.2 Template alias for a specific instantiation
+template의 특정 인스턴스화에서 사용할 수 있다.
+``` cpp
+    template<typename T>
+    using IntPair = std::pair<int, T>;
+    
+    IntPair<double> id_pair;
+    IntPair<std::string> is_pair;
+    
+```
+### 9.4.3. using template aliases w/ other templates
+다른 template들과 조합되어 사용될 수도 있음.
+
+``` cpp
+    template<typename T>
+    using Vec = std::vector<T>;
+    
+    // Matrix는 vector의 vector로 정의되고, Matrix template은 alias는
+    // nested 된 구조를 더 쉽게 표현할 수 있게 해줌
+    template<typename T>
+    using Matrix = Vec<Vec<T>>;
+    
+    Matrix<int> int_matrix;
+    matrix<double> double_matrix;
+```
+
 
 # 10. Coding style and conventions
 C++11, C++14, C++17, and C++20 features

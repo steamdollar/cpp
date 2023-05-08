@@ -108,6 +108,12 @@
 ## 9.3 Template argument deduction and SFINAE (Substitution Failure Is Not An Error)
 ## 9.4 Template aliases
 
+### 9.4.1 Basic template alias
+
+### 9.4.2 Template alias for a specific instantiation
+
+### 9.4.3. using template aliases w/ other templates
+
 # 10. Advanced C++ Concepts
 ## 10.1 Exception handling (try, catch, throw)
 ## 10.2 Namespaces
