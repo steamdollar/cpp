@@ -2569,6 +2569,684 @@ template의 특정 인스턴스화에서 사용할 수 있다.
 
 
 # 10. Coding style and conventions
-C++11, C++14, C++17, and C++20 features
-Common design patterns
-Performance optimization techniques
+## 10.1 Exception handling (try, catch, throw)
+
+### 10.1.1 The try and catch blocks
+코드 블록에서 예외처리를 하고 싶다면 try-catch문을 사용한다.
+
+try안에서 `throw` 키워드를 이용해 예외가 던져지면 catch block으로 이동한다.
+
+``` cpp
+    #include <iostream>
+    
+    int main() {
+        try {
+            int x = 10;
+            int y = 0;
+            if (y == 0) {
+                throw "division by zero";   
+            }
+            int z = x/y
+            
+            // std::exception class를 사용하기도 한다.
+        } catch(const char* msg) {
+            std::cerr << "Caught an exception : " << msg << std::endl; 
+        }   
+    }
+```
+
+### 10.1.2 Catching different types of exceptions
+catch문을 여러 개 쓸 수도 있음.
+
+``` cpp
+    #include <iostream>
+    #include <stdexcept>
+    
+    int main() {
+        try {
+            throw std::runtime_error("runtime error occured");
+        } catch (const std:;runtime_error& e) {
+            std::cerr << "caught runtime_error" << e.what() << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "general exception" << e.what() << std::endl;   
+        } catch (...) {
+            std::cerr << "caught an unknown exception" << std::endl;   
+        }
+        return 0;
+    }
+```
+
+위 코드에서 catch 블록들은 가장 구체적인 에러부터 일반적인 예외 타입 순서로 나열되어 있다.
+
+## 10.2 Namespaces
+namespace는 연관된 타입, 함수, 객체 등을 그룹 짓고, 이름의 중복을 피하기 위한 방법이다.
+
+식별자 그룹을 캡슐화해 코드의 다른 부분과 충돌하지 않도록 해줌.
+
+### 10.2.1 Defining namespaces
+`namespace` 키워드를 이용해 namespace를 정의할 수 있고, 그 뒤에 이름을 써주면 된다.
+
+``` cpp
+    namespace MyNameSpace {
+        int myVar = 42;
+        void myFunction() {
+            // do sth...   
+        }   
+    }
+```
+
+### 10.2.2 Using namespaces
+namespace의 구성원에 접근하기 위해 범위 지정 연산자 `::`를 사용할 수 있다.
+
+``` cpp
+    #include <iostream>
+    
+    namespace MyNamespace {
+        int myVar = 42;
+        void MyFunction() {
+            std::cout << "Inside myFunction()" << std::endl;   
+        }   
+    }
+    
+    int main() {
+        std::cout << "myVar : " << MyNameSpace::myVar << std::endl;
+        MyNameSpace::myFunction();
+        return 0;   
+    }
+    
+```
+
+### 10.2.3 The `using` keyword
+
+`using` 키워드를 사용해 현재 scope에서 특정 namespace member를 가져올 수 있다.
+
+매번 `::`를 사용하지 않아도 됨.
+
+``` cpp
+    #include <iostream>
+    
+    namespace MyNamespace {
+        int myVar = 42;
+        void MyFunction() {
+            std:;cout << "Inside myFunc " << std::endl;   
+        }   
+    }
+    
+    int main() {
+        using MyNamespace::myVar;
+        using MyNamespace::myFunction;
+        
+        std::cout << "myVar : " << myVar << std::endl;
+        myFunction();
+        return 0;   
+    }
+    
+```
+
+### 10.2.4 Nested namespaces
+Namespace는 nest 될 수 있어서 namespace의 계층을 만드는 것도 가능하다.
+
+``` cpp
+    namespace Outer {
+        namespace Inner {
+            int myVar = 42;   
+        }   
+    }
+    
+    int main() {
+        std::cout << "myVar : " << Outer::Inner::myVar << std::endl;
+        return 0;   
+    }
+    
+```
+
+c++ 17부터는 이렇게 쓸 수도 있음
+``` cpp
+    namespace Outer::Inner {
+        int myVar = 42;   
+    }
+```
+
+## 10.3 Multithreading
+### 10.3.1 Introduction to multithreading
+동시에 여러 프로그램을 실행하는 프로그래밍 테크닉. 
+
+싱글 스레드에서는 작업이 코드가 짜인 순서대로 하나씩 실행되지만,
+
+멀티스레드 프로그램에서는 몇 가지 작업을 동시에 굴릴 수 있다.
+
+다만, 리소스를 여러 개 스레드가 공유하므로 race condition이 되어
+
+결과가 꼬이는 경우가 있다. Synchronization이 이런 스레드 간의 실행 안정성,
+
+공유된 리소스의 통합성을 보장해주는 테크닉이다.
+
+### 10.3.2 Creating threads in C++
+cpp에서는 <thread> header를 이용해 thread를 생성할 수 있다.
+
+``` cpp
+    #include <iostream>
+    #include <thread>
+    
+    void print_hello() {
+        std::cout << "hello from the new thread" << std::endl;   
+    }
+    
+    int main() {
+        // 새 thread t를 생성해 print_hello 함수 실행
+        std::thread t(print_hello);
+        
+        // join 함수는 thread t에서 호출되어 
+        // main 함수의 나머지 코드가 t thread의 실행 완료까지 기다리게 한다.
+        t.join();
+        
+        std::cout << "Hello main thread" << std::endl;
+        return 0;
+    }
+```
+
+main thread와 새 thread의 실행 순서는 보장되지 않는다. 이 코드를 실행할때마다 출력 순서가 달라질 수 있다.
+
+기억해야 할점은 스레드의 destructor가 호출되기 전 thread를 join하거나 detach하는 것.
+
+그렇지 않으면 프로그램이 종료되어 버린다.
+
+thread를 join 한다는 건 그게 끝나길 기다리겠다는 의미이고, 반대로 detaching은
+
+메인 스레드와 독립적으로 실행되는걸 허용하겠다는 의미이다.
+
+### 10.3.3 Thread communication and synchronization
+- mutex
+- lock
+- condition var
+
+다양한 스레드가 공유된 데이터에 접근하면 race condition의 위험이 있다.
+
+이를 막기 위해서는 mutex, lock 등을 이용해 syncronization을 해줄 필요가 있다.
+
+mutex는 (mutual exclusion) 특정 리소스로 접근하는 스레드가 동시에 하나만 있도록 제한해준다.
+
+thread가 리소스에 접근할 경우 우선 mutex를 lock해야 한다.
+
+이미 다른 thread가 mutex에 lock을 걸었다면 그 mutex가 unlock될 땎가지
+
+스레드가 블록된다.
+
+cpp에서는 `std::mutex`를 이용한다.
+
+``` cpp
+    #include <iostream>
+    #include <mutex>
+    #include <thread>
+    
+    // global mutex to protect access to the shared resource
+    std::mutex mtx;
+    int shared_resource = 0;
+    
+    void increment() {
+        for (int i = 0; i < 10000; ++i) {
+            std::unique_lock<std::mutex> lock(mtx);
+            ++shared_resource;
+            lock.unlock(); 
+        }   
+    }
+    
+    int main() {
+        std::thread t1(increment);
+        std::thread t2(increment);
+        
+        t1.join();
+        t2.join();
+        
+        std::cout << "shared resource value : " << shared_resource << std::endl;
+        return 0;   
+    }
+```
+
+### 10.3.4 Condition Variables
+조건 변수는 mutex와 함께 사용해 한 thread가 특정 조건이 충족될때 까지 기다렸다가
+
+계속 수행할 수 있도록 한다. 다른 스레드가 일부 데이터를 생성할 때까지 기다려야 하는 
+
+상황에서 유용하다.
+
+``` cpp
+    #include <iostream>
+    #include <thread>
+    #include <mutex>
+    #include <condition_varibale>
+    #include <queue>
+    
+    std::mutex mtx;
+    std::condition_variable cv;
+    std::queue<int> data_queue;
+    
+    void producer() {
+        for (int i = 0; i < 10; ++i) {
+            std::unique_lock<std::mutex> lock(mtx);
+            data_queue.push(i);
+            std::cout << "Produced: " << i << std::endl;
+            lock.unlock();
+            
+            // data가 queue에 push되면 cv.notify_one이 consumer thread에 알린다.
+            cv.notify_one();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }   
+    }
+    
+    void consumer() {
+        while(true) {
+            std::unique_lock<std::mutex> lock(mtx);
+            //cv.wait()은 unique lock과 조건을 인수로 가지고, 조건 변수가 알림을 받고
+            // 술어가 참을 반환할때까지 호출 스레드를 차단한다.
+            cv.wait(lock, []{ return !data_queue.empty();});
+            
+            int data = data_queue.front();
+            data_queue.pop();
+            
+            std::cout << "consumed: " << data << std::endl;
+            
+            if( data == 9 ) {
+                break;   
+            }   
+        }   
+    }
+    
+    int main() {
+        std::thread t1(producer);
+        std::thread t2(consumer);
+        
+        t1.join();
+        t2.join();
+        
+        return 0;   
+    }
+    
+```
+
+### 10.3.4 Thread-safe data structures and patterns
+`Thread Safe`는 공유되는 데이터가 동 시간에 여러 스레드로부터의 접근을 안전하게 해준다는 개념이다.
+
+여러 스레드가 동시에 데이터를 변경하려고 하면 문제가 생기므로 매우 중요한 개념임.
+
+이를 위해 cpp 표준 lib에서 제공하는 몇 가지 기능이 있다.
+
+1. mutex (mutual exclusion obj)
+하나의 스레드가 데이터에 접근하는 동안 다른 스레드를 배제해줌.
+
+``` cpp
+    #include <mutex>
+    std::mutex mtx;
+    
+    void print_thread_id(int id) {
+        // 공유된 데이터에 접근하기 전 mutex를 lock해버리므로 함수가 thread-safe
+        mtx.lock();
+        std::cout << " thread # " << id << '\n'
+        mtx.umlock();
+    }
+    
+```
+
+2. locks : mutex obj를 관리하고, lock, unlock 메커니즘을 제공한다.
+``` cpp
+    #include <mutex>
+    std::mutex mtx;
+    
+    void print_thread_id(int id) {
+        // std::lock_guard 객체 lock은 mutex가 생성되면 그걸 획득
+        // mutex가 제거될 떄 release 해, mutex가 항상 적절히 unlock 되도록 해준다.
+        std::lock_guard<std::mutex> lock(mtx);
+        std::cout << "thread #" << id << '\n';   
+    }
+```
+
+3. Atomics : cpp 표준 lib에서 제공하는 기능. 
+멀티스레딩에서도 끊어지지 않는 단일 단위로 수행되는 연산
+
+``` cpp
+    #include <atomic>
+    
+    // counter 변수가 atomic integer
+    std::atomic<int> counter;
+    
+    // thread safe 
+    void increase_counter() {
+        ++counter;   
+    }
+```
+
+### thread-local storage (TLS)
+스레드 전용 데이터를 할당하는 메커니즘. 전역 변수를 사용하고 싶은데,
+
+각 thread에서 그 값이 달라야할 때 사용한다.
+
+`thread_local`를 변수 앞에 붙여주면 된다. 
+
+``` cpp
+    #include <iostream>
+    #include <thread>
+    
+    // 각 스레드는 자신의 g_n 사본을 가진다. (메인 스레드도)
+    thread_local int g_n = 1;
+
+    void f() {
+        // 여기서 g_n을 바꿔도 다른 스레드에선 영향이 없음
+        g_n++;
+        std::cout << g_n << '\n';
+    }
+
+    void foo() {
+        g_n += 3;
+        std::cout << g_n << '\n';   
+    }
+
+    int main() {
+        std::thread t1(f);
+        std::thread t2(foo);
+        
+        t1.join();
+        t2.join();
+        
+        std::cout << g_n << '\n';
+        
+        return 0;
+    }
+```
+
+### Design patterns for multithreading
+디자인 패턴은 소프트웨어 디자인에서 나타나는 일반적인 문제들에 대한 재사용 가능한 솔루션을 제시한다.
+
+- singleton pattern
+멀티스레드 환경에서 싱글턴 인스턴스는 한 번만 생성되도록 주의해야한다.
+
+mutex, lock을 이용할 수 있다.
+
+``` cpp
+    #include <iostream>
+    #include <memory>
+    #include <mutex>
+    
+    class Singleton {
+    public:
+        // delete copy and move construtors & assign operators
+        Singleton(Singleton const&) = delete;
+        Singleton(Singleton&&) = delete;
+        Singleton& operator=(Singleton const&) = delete;
+        Singleton& operator=(Singleton &&) = delete;
+        
+        static Singleton& getInstance() {
+            // call_once 함수는 스레드가 여기 접근하는 횟수에 무관하게 
+            // initSingleton이 한 번만 호출되도록 보장해줌.
+            // 즉, 하나의 Singleton 인스턴스만이 생성되며, 이는 thread-safe하다.
+            std::call_once(initInstanceFlag, &Singleton::initSingleton); 
+            return *instance;  
+        }
+        
+        void someBusinessLogic() {
+            // ...
+        }   
+    
+    
+    private:
+        Singleton() {}
+        
+        static void initSingleton() {
+            instance.reset(new Singleton);   
+        }
+        
+        static std::unique_ptr<Singelton> instance;
+        static std::once_flag initInstanceFlag;
+    };
+    
+    std::unique_ptr<Singleton> Singleton::instance;
+    std::once_flag Singleton::initInstanceFlag;
+    
+    int main() {
+        Singleton::getInstance().someBusinessLogic();
+        
+        return 0;   
+    }
+    
+```
+
+
+- producer/consumer pattern
+하나 이상의 스레드 (producer)가 데이터를 생성하고 다른 스레드(consumer)가 이를 사용하는 것.
+
+pdata producer와 consumer를 분리하면 작업을 여러 스레드에 분배하는게 가능해지므로 성능 향상에 유용하다.
+
+``` cpp
+    #include <iostream>
+    #include <queue>
+    #include <thread>
+    #include <mutex>
+    #include <condition_variable>
+    
+    std::queue<int> produced_nums;
+    std::mutex mtx;
+    
+    // nofity consumer when new data is available
+    std::condition_variable cv;
+    
+    void producer(int n) {
+        for (int i = 0; i < n; i++) {
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                produced_nums.push(1);
+                std::cout << "produced : " << i << '\n';   
+            }
+            cv.notify_all();   
+        }   
+    }
+    
+    void consumer() {
+        while(true) {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock, []{return !produced_nums.empty(); });
+            
+            int num = produced_nums.front();
+            produced_nums.pop();
+            
+            std::cout << "consumed : " << num << '\n';
+            lock.unlock();
+            if(num == 99) {
+                break; 
+            }   
+        }   
+    }
+    
+    int main() {
+        std::thread prod1(producer, 100);
+        std::thread cons1(consumer);
+        
+        prod1.join();
+        cons1.join();
+        return 0;   
+    }
+    
+```
+
+
+- Reader/Writer pattern
+여러 스레드에서 동시에 읽힐수도 있지만, 동시간에 하나의 스레드에게만
+
+쓰일 수 있는 공유된 데이터가 있고, 
+
+이 때 발생할 수 있는 race condition이나 데이터 불일치를 방지하기 위해 사용된다.
+
+reader들은 객체에 동시에 접근할 수 있지만 writer가 데이터를 수정하는 동안에는
+
+다른 reader나 writer가 객체에 접근할 수 없다.
+
+``` cpp
+    #include <mutex>
+    #include <condition_variable>
+    #include <iostream>
+    
+    class SharedObject {
+        int data;
+        std::mutex mtx;
+        std::condition_variable cv;
+        bool is_writing = false;
+        int readers = 0;
+    
+    public:
+        votd read() {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(look, [this]() { return !is_writing; });
+            ++readers;
+            lock.unlock();
+            
+            std::cout << "read : " << data << std::endl;
+            
+            lock.lock();
+            --readers;
+            if(readers == 0) {
+                cv.notify_all();   
+            }
+        }
+        
+        void write(int new_data) {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock, [this]() { return !is_writing && readers == 0; });
+            is_writing = true;
+            lock.unlock();
+            
+            std::cout << "Write : " << new_data << std::endl;
+            data = new_data;
+            
+            lock.lock();
+            is_writing = false;
+            cv.notify_all();    
+        }
+    }
+```
+
+read() : 우선 writer가 있는지 확인. 없다면 (writer가 작업중이 아니라면) reader응 1 증가시키고
+
+data를 읽는다. 이 후, 다시 reader count를 낮추고 reader가 없다면 대기중인 writer에게 알린다.
+
+write() : writer나 reader가 없을 때까지 대기한다. 데이터를 쓰고 대기 중인 reader, writer들에게 알려준다.
+
+
+- active object (**&& 잘 모르겠음..)
+
+이 패턴은 method 실행과 자체 제어 스레드에 있는 method 호출을 분리한다. 
+
+비동기 메서드 호출과 요청 처리를 위한 스케줄러를 사용하여 동시성을 구현.
+
+``` cpp
+    #include <thread>
+    #include <queue>
+    #include <mutex>
+    #include <condition_variable>
+    #include <functional>
+    #include <iostream>
+    
+    class ActiveObject {
+        std::queue<std::function<void()>> tasks;
+        std::mutex mtx;
+        std::condition_variable cv;
+        bool stop = false;
+        std::thread worker;
+        
+        void run() {
+            while (true) {
+                std::function<void()> task;
+                
+                {
+                    std::unique_lock<std::mutex> lock(mtx);
+                    cv.wait(lock, [this]() { return stop || !tasks.empty(); });
+                    if (stop && tasks.empty())
+                        return;
+                    task = std::move(tasks.front());
+                    tasks.pop();
+                }
+                
+                task();
+            }
+        }
+    
+    public:
+        ActiveObject() : worker([this]() {run();}) {}
+        
+        ~ActiveObject() {
+            {
+                std::unique_lock<std::mutex> lock(mtx);
+                stop = true;
+            }
+            cv.notify_all();
+            worker.join();
+        }
+        
+        template<typename Func>
+        void enqueue(Func&& f) {
+            {
+                std::unique_lock<std::mutex> lock(mtx);
+                tasks.emplace(std::forward<Func>(f));
+            }
+            cv.notify_one();
+        }
+    }
+    
+    int main() {
+        ActiveObject ao;
+        ao.enqueue([]() { std::cout << "Hello, "; });
+        ao.enqueue([]() { std::cout << "World!\n"; });
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        return 0;
+    }
+    
+```
+
+### 10.3.5 Task-based parallelism
+thread를 직접 관리하는 것보다 고레벨 방법이다.
+
+thread를 생성하고 특정 작업에 이들을 할당하는 대신,
+
+task를 생성하고 task schedulerr가 이를 thread에 어떻게 할당할지를 결정한다.
+
+이렇게 하면 스레드 수만큼의 작업이 아니라 해결해야 할 하위 문제 수만큼의 작업을 만들 수 있다.
+
+- 장점
+1. 코드로 구현하기 쉽다.
+> threading처럼 어떻게 작업이 완료되는지는 생각할 필요 없이, 뭘 해야하는지만 생각하면 됨
+
+2. 효율적이다.
+> 작업 스케쥴러가 thread간 작업 분배를 직접 하는것보다 잘해준다. 한 작업이 빨리 끝나면 스레드는
+바로 다음 작업을 수행할 수 있다.
+
+3. scalable
+> cpu가 늘어도 코드 수정이 없이 그대로 그 변경을 활용할 수 있음
+
+- std lib
+1. std::async
+> 함수를 비동기적으로 실행, std::future를 리턴 (함수의 결과값을 hold)
+
+2. std::future, std::promise
+> get and set the value of shared state. 이후 , std::future:get 으로 state 회수
+
+3. std::packaged_task
+> 함수를 감싸 비동기적으로 호출할 수 있게 해줌. std:;future를 통해 접근할 수 있는
+shared state에 저장됨
+
+//
+
+- std::async
+``` cpp
+    #include <iostream>
+    #include <future>
+    #include <thread>
+    
+    int compute() {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return 42; 
+    }
+    
+    int main() {
+        std::future<int> result = std::async(compute);
+        
+        std::cout << "The answer is" << result.get() << ".\n"
+        return 0;
+    } 
+```

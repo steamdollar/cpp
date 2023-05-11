@@ -116,6 +116,36 @@
 
 # 10. Advanced C++ Concepts
 ## 10.1 Exception handling (try, catch, throw)
+### 10.1.1 The try and catch blocks
+### 10.1.2 Throwing exceptions
+### 10.1.3 Catching different types of exceptions
+
 ## 10.2 Namespaces
+### 10.2.1 Defining namespaces
+### 10.2.2 Using namespaces
+### 10.2.3 The using keyword
+### 10.2.4 Nested namespaces
+
 ## 10.3 Multithreading
+### 10.3.1 Introduction to multithreading
+### 10.3.2 Creating threads in C++
+- The <thread> library
+- Basic thread creation
+- Joining and detaching threads
+
+### 10.3.3 Thread communication and synchronization
+- Mutexes
+- Locks (unique_lock, lock_guard)
+- Condition variables
+
+### 10.3.4 Thread-safe data structures and patterns
+- Atomic operations
+- Thread-local storage
+- Design patterns for multithreading
+
+### 10.3.5 Task-based parallelism
+- The <future> and <async> libraries
+- Asynchronous tasks and promises
+- Task exception handling
+
 ## 10.4 C++ Best Practices and Design Patterns
